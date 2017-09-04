@@ -29,5 +29,5 @@ mkdir output
 dotnet run belgium-latest.osm.pbf ./output 12
 ```
 
-The result of the split can be seen in an example area uploaded [here]().
+The result of a split can be seen in an example area uploaded [here](https://github.com/openplannerteam/routable-tiles/tree/master/examples/gent/14).
 
