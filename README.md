@@ -19,12 +19,15 @@ Or the Benelux:
 
 Now run the following:
 
-```dotnet run /home/xivk/data/wechel.osm.pbf ./output/ 12```
+```dotnet run /path/to/source-file.osm.pbf ./output/ 12```
 
-A complete example for Belgium:
+A complete example splitting Belgium in tiles for zoom-level 12:
 
 ```
 wget http://download.geofabrik.de/europe/belgium-latest.osm.pbf
 mkdir output
 dotnet run belgium-latest.osm.pbf ./output 12
 ```
+
+The result of the split can be seen in an example area uploaded [here]().
+
