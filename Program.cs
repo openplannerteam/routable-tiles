@@ -61,16 +61,33 @@ namespace routable_tiles
             }
 
             // load routerdb.
-            var routerDb = new RouterDb();
-            using (var stream = File.OpenRead(args[0]))
+            RouterDb routerDb = null;
+            var sourceFile = args[0];
+            if (sourceFile.EndsWith(".osm.pbf"))
             {
-                routerDb.LoadOsmData(stream, new LoadSettings()
-                    {
-                        KeepNodeIds = true
-                    }, 
-                    Itinero.Osm.Vehicles.Vehicle.Car, 
-                    Itinero.Osm.Vehicles.Vehicle.Bicycle,
-                    Itinero.Osm.Vehicles.Vehicle.Pedestrian);
+                routerDb = new RouterDb();
+                using (var stream = File.OpenRead(args[0]))
+                {
+                    routerDb.LoadOsmData(stream, new LoadSettings()
+                        {
+                            KeepNodeIds = true
+                        }, 
+                        Itinero.Osm.Vehicles.Vehicle.Car, 
+                        Itinero.Osm.Vehicles.Vehicle.Bicycle,
+                        Itinero.Osm.Vehicles.Vehicle.Pedestrian);
+                }
+            }
+            else if (sourceFile.EndsWith(".routerdb"))
+            {
+                using (var stream = File.OpenRead(sourceFile))
+                {
+                    routerDb = RouterDb.Deserialize(stream);
+                }
+            }
+            else
+            {
+                Log.Information("Cannot process source file, .osm.pbf or .routerdb expected: " + args[0]);
+                return;
             }
 
             // extract tiles.
