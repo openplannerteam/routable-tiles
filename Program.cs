@@ -31,12 +31,12 @@ namespace routable_tiles
                 "Example: " + Environment.NewLine +
                 "  /path/to/osm-file.osm.pbf /output/path 14";
     
-            args = new string[]
-            {
-                "/home/xivk/data/wechel.osm.pbf",
-                "/home/xivk/work/itinero/routable-tiles/output",
-                "14"
-            };
+            // args = new string[]
+            // {
+            //     "/home/xivk/data/wechel.osm.pbf",
+            //     "/home/xivk/work/itinero/routable-tiles/output",
+            //     "14"
+            // };
             if (args.Length < 3) 
             {
                 Log.Information("Expected at least three arguments." + Environment.NewLine + expectedUsage);

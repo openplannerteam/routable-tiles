@@ -7,6 +7,7 @@ using Itinero.Attributes;
 using Itinero.Data.Network;
 using Itinero.IO.Json;
 using Itinero.IO.Osm;
+using Itinero.LocalGeo;
 using routable_tiles.Tiles;
 using Serilog;
 
@@ -46,6 +47,8 @@ namespace routable_tiles
             jsonWriter.WriteProperty("type", "FeatureCollection", true, false);
             jsonWriter.WritePropertyName("features", false);
             jsonWriter.WriteArrayOpen();
+
+            tile.WriteTile(jsonWriter);
 
             var edgeEnumerator = db.Network.GetEdgeEnumerator();
             foreach (var vertex in vertices)
@@ -145,6 +148,48 @@ namespace routable_tiles
             jsonWriter.WriteClose();
 
             return true;
+        }
+
+        internal static void WriteTile(this Tiles.Tile tile, JsonWriter jsonWriter)
+        {
+            var box = tile.Box;
+
+            var corners = new Coordinate[]
+            {
+                new Coordinate(box.MaxLat, box.MinLon),
+                new Coordinate(box.MaxLat, box.MaxLon),
+                new Coordinate(box.MinLat, box.MaxLon),
+                new Coordinate(box.MinLat, box.MinLon),
+                new Coordinate(box.MaxLat, box.MinLon)
+            };
+
+            jsonWriter.WriteOpen();
+            jsonWriter.WriteProperty("type", "Feature", true, false);
+            jsonWriter.WritePropertyName("geometry", false);
+
+            jsonWriter.WriteOpen();
+            jsonWriter.WriteProperty("type", "LineString", true, false);
+            jsonWriter.WritePropertyName("coordinates", false);
+            jsonWriter.WriteArrayOpen();
+
+            foreach (var coordinate in corners)
+            {
+                jsonWriter.WriteArrayOpen();
+                jsonWriter.WriteArrayValue(coordinate.Longitude.ToInvariantString());
+                jsonWriter.WriteArrayValue(coordinate.Latitude.ToInvariantString());
+                jsonWriter.WriteArrayClose();
+            }
+
+            jsonWriter.WriteArrayClose();
+            jsonWriter.WriteClose();
+
+            jsonWriter.WritePropertyName("properties");
+            jsonWriter.WriteOpen();
+            jsonWriter.WriteProperty("id", tile.LocalId.ToInvariantString(), true, true);
+            jsonWriter.WriteProperty("zoom", tile.Zoom.ToInvariantString(), true, true);
+            jsonWriter.WriteClose();
+
+            jsonWriter.WriteClose();
         }
     }
 }
