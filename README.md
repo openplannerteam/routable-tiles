@@ -15,8 +15,8 @@ Or the Benelux:
 ### Usage
 
 - Install [.NET core]().
-- Run ´´´publish.sh´´´
+- Run ```publish.sh```
 
 Now a built version should be available in the publish folder:
 
-´´´.\bin\release\netcoreapp2.0\ubuntu.16.04-x64\publish\routable-tiles \path\to\source-file.osm.pbf \path\to\output-folder 12´´´
+```.\bin\release\netcoreapp2.0\ubuntu.16.04-x64\publish\routable-tiles \path\to\source-file.osm.pbf \path\to\output-folder 12```
