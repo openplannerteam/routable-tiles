@@ -14,9 +14,8 @@ Or the Benelux:
 
 ### Usage
 
-- Install [.NET core]().
-- Run ```publish.sh```
+- Install [.NET core](https://www.microsoft.com/net/download/core).
 
-Now a built version should be available in the publish folder:
+Now run the following:
 
-```.\bin\release\netcoreapp2.0\ubuntu.16.04-x64\publish\routable-tiles \path\to\source-file.osm.pbf \path\to\output-folder 12```
+```dotnet run /home/xivk/data/wechel.osm.pbf ./output/ 12```
