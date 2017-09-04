@@ -124,6 +124,13 @@ namespace routable_tiles
                 {
                     if (routerDb.WriteRoutingTile(stream, tile, x => x))
                     {
+                        var json = stream.ToString();
+
+                        if (string.IsNullOrWhiteSpace(json))
+                        {
+                            continue;
+                        }
+
                         var file = Path.Combine(path, tile.Zoom.ToInvariantString(), tile.X.ToInvariantString(),
                                     tile.Y.ToInvariantString() + ".geojson");
                         var fileInfo = new FileInfo(file);
@@ -132,7 +139,7 @@ namespace routable_tiles
                             fileInfo.Directory.Create();
                         }
 
-                        File.WriteAllText(file, stream.ToString());
+                        File.WriteAllText(file, json);
 
                         Log.Information("Extracted tile:" + fileInfo.FullName);
                     }
