@@ -75,6 +75,8 @@ namespace routable_tiles
                 using (var stream = File.OpenRead(args[0]))
                 {
                     var source = new PBFOsmStreamSource(stream);
+                    var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
+                    progress.RegisterSource(source);
                     
                     // make sure the routerdb can handle multiple edges.
                     routerDb.Network.GeometricGraph.Graph.MarkAsMulti();
@@ -94,7 +96,7 @@ namespace routable_tiles
                         simplifyEpsilonInMeter: settings.NetworkSimplificationEpsilon);
                     target.KeepNodeIds = settings.KeepNodeIds;
                     target.KeepWayIds = settings.KeepWayIds;
-                    target.RegisterSource(source);
+                    target.RegisterSource(progress);
                     target.Pull();
                     
                     // optimize the network for routing.
@@ -113,16 +115,16 @@ namespace routable_tiles
                     Itinero.Logging.Logger.Log("Program", TraceEventType.Information, "Writing output routerdb...");
                     using (var output = File.Open("output.routerdb", FileMode.Create))
                     {
-                        routerDb.Serialize(stream);
+                        routerDb.Serialize(output);
                     }
                 }
             }
             else if (sourceFile.EndsWith(".routerdb"))
             {
-                using (var stream = File.OpenRead(sourceFile))
-                {
-                    routerDb = RouterDb.Deserialize(stream);
-                }
+                var stream = File.OpenRead(sourceFile);
+                //{
+                    routerDb = RouterDb.Deserialize(stream);//, RouterDbProfile.NoCache);
+                //}
             }
             else
             {
@@ -158,32 +160,29 @@ namespace routable_tiles
             var tiles = (new Box(minLat, minLon, maxLat, maxLon)).GetTilesCovering(zoom);
 
             // extract all tiles.
+            //System.Threading.Tasks.Parallel.ForEach(tiles, (tile) => 
             foreach (var tile in tiles)
             {
-                using (var stream = new StringWriter())
-                {
-                    if (routerDb.WriteRoutingTile(stream, tile, x => x))
-                    {
-                        var json = stream.ToString();
-
-                        if (string.IsNullOrWhiteSpace(json))
-                        {
-                            continue;
-                        }
-
                         var file = Path.Combine(path, tile.Zoom.ToInvariantString(), tile.X.ToInvariantString() + "-" + tile.Y.ToInvariantString() + ".geojson");
                         var fileInfo = new FileInfo(file);
                         if (!fileInfo.Directory.Exists)
                         {
                             fileInfo.Directory.Create();
                         }
-
-                        File.WriteAllText(file, json);
+                        var success = false;
+                using (var stream = fileInfo.Open(FileMode.Create))
+                using (var streamWriter = new StreamWriter(stream))
+                {
+                    success = routerDb.WriteRoutingTile(streamWriter, tile, x => x);
+                }
+                
+                if (!success)
+                {
+                    fileInfo.Delete();
+                }
 
                         Log.Information("Extracted tile:" + fileInfo.FullName);
-                    }
-                }
-            }
+            };
         }
     }
 }

@@ -39,7 +39,7 @@ namespace routable_tiles
 
             if (vertices.Count == 0)
             {
-                return true;
+                return false;
             }
 
             var jsonWriter = new JsonWriter(writer);
