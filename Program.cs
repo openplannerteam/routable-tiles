@@ -1,8 +1,14 @@
 ﻿using System;
 using System.IO;
 using Itinero;
+using Itinero.Algorithms.Networks;
+using Itinero.Algorithms.Search.Hilbert;
 using Itinero.IO.Osm;
+using Itinero.IO.Osm.Streams;
 using Itinero.LocalGeo;
+using Itinero.Logging;
+using Itinero.Profiles;
+using OsmSharp.Streams;
 using routable_tiles.Tiles;
 using Serilog;
 
@@ -68,13 +74,47 @@ namespace routable_tiles
                 routerDb = new RouterDb();
                 using (var stream = File.OpenRead(args[0]))
                 {
-                    routerDb.LoadOsmData(stream, new LoadSettings()
-                        {
-                            KeepNodeIds = true
-                        }, 
-                        Itinero.Osm.Vehicles.Vehicle.Car, 
+                    var source = new PBFOsmStreamSource(stream);
+                    
+                    // make sure the routerdb can handle multiple edges.
+                    routerDb.Network.GeometricGraph.Graph.MarkAsMulti();
+
+
+                    var vehicles = new Vehicle[]
+                    {
+                        Itinero.Osm.Vehicles.Vehicle.Car,
                         Itinero.Osm.Vehicles.Vehicle.Bicycle,
-                        Itinero.Osm.Vehicles.Vehicle.Pedestrian);
+                        Itinero.Osm.Vehicles.Vehicle.Pedestrian
+                    };
+
+                    // load the data.
+                    var settings = new LoadSettings();
+                    var target = new RouterDbStreamTarget(routerDb,
+                        vehicles, false, processRestrictions: false, processors: settings.Processors,
+                        simplifyEpsilonInMeter: settings.NetworkSimplificationEpsilon);
+                    target.KeepNodeIds = settings.KeepNodeIds;
+                    target.KeepWayIds = settings.KeepWayIds;
+                    target.RegisterSource(source);
+                    target.Pull();
+                    
+                    // optimize the network for routing.
+                    routerDb.SplitLongEdges();
+                    routerDb.ConvertToSimple();
+
+                    // sort the network.
+                    routerDb.Sort();
+
+                    // optimize the network if requested.
+                    if (settings.NetworkSimplificationEpsilon > 0)
+                    {
+                        routerDb.OptimizeNetwork(settings.NetworkSimplificationEpsilon);
+                    }
+
+                    Itinero.Logging.Logger.Log("Program", TraceEventType.Information, "Writing output routerdb...");
+                    using (var output = File.Open("output.routerdb", FileMode.Create))
+                    {
+                        routerDb.Serialize(stream);
+                    }
                 }
             }
             else if (sourceFile.EndsWith(".routerdb"))
@@ -131,8 +171,7 @@ namespace routable_tiles
                             continue;
                         }
 
-                        var file = Path.Combine(path, tile.Zoom.ToInvariantString(), tile.X.ToInvariantString(),
-                                    tile.Y.ToInvariantString() + ".geojson");
+                        var file = Path.Combine(path, tile.Zoom.ToInvariantString(), tile.X.ToInvariantString() + "-" + tile.Y.ToInvariantString() + ".geojson");
                         var fileInfo = new FileInfo(file);
                         if (!fileInfo.Directory.Exists)
                         {

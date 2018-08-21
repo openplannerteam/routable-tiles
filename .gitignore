@@ -42,3 +42,6 @@ packages/*
 *.multimodaldb
 
 output/*
+
+.idea
+.idea/*
