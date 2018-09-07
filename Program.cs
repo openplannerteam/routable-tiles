@@ -32,35 +32,37 @@ namespace routable_tiles
             };
 
             // parse command-line arguments.
-            var expectedUsage = @"Expected Arguments: " + Environment.NewLine + 
-                "  [sourcefile] [outputfolder] [zoom-level]" + Environment.NewLine + 
-                "Example: " + Environment.NewLine +
-                "  /path/to/osm-file.osm.pbf /output/path 14";
-    
+            var expectedUsage = @"Expected Arguments: " + Environment.NewLine +
+                                "  [sourcefile] [outputfolder] [zoom-level]" + Environment.NewLine +
+                                "Example: " + Environment.NewLine +
+                                "  /path/to/osm-file.osm.pbf /output/path 14";
+
             // args = new string[]
             // {
             //     "/home/xivk/data/wechel.osm.pbf",
             //     "/home/xivk/work/itinero/routable-tiles/output",
             //     "14"
             // };
-            if (args.Length < 3) 
+            if (args.Length < 3)
             {
                 Log.Information("Expected at least three arguments." + Environment.NewLine + expectedUsage);
                 return;
             }
+
             if (!File.Exists(args[0]))
             {
                 Log.Information("Source file not found: " + args[0]);
                 return;
             }
+
             if (!Directory.Exists(args[1]))
             {
                 Log.Information("Target folder not found: " + args[1]);
                 return;
             }
+
             var path = args[1];
-            uint zoom;
-            if (!uint.TryParse(args[2], out zoom))
+            if (!uint.TryParse(args[2], out var zoom))
             {
                 Log.Information("Cannot parse zoom-level, expected [0-20]: " + args[2]);
                 return;
@@ -77,7 +79,7 @@ namespace routable_tiles
                     var source = new PBFOsmStreamSource(stream);
                     var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
                     progress.RegisterSource(source);
-                    
+
                     // make sure the routerdb can handle multiple edges.
                     routerDb.Network.GeometricGraph.Graph.MarkAsMulti();
 
@@ -98,7 +100,7 @@ namespace routable_tiles
                     target.KeepWayIds = settings.KeepWayIds;
                     target.RegisterSource(progress);
                     target.Pull();
-                    
+
                     // optimize the network for routing.
                     routerDb.SplitLongEdges();
                     routerDb.ConvertToSimple();
@@ -122,9 +124,7 @@ namespace routable_tiles
             else if (sourceFile.EndsWith(".routerdb"))
             {
                 var stream = File.OpenRead(sourceFile);
-                //{
-                    routerDb = RouterDb.Deserialize(stream);//, RouterDbProfile.NoCache);
-                //}
+                routerDb = RouterDb.Deserialize(stream);
             }
             else
             {
@@ -134,8 +134,10 @@ namespace routable_tiles
 
             // extract tiles.
             var location = routerDb.Network.GetVertex(0);
-            float minLat = location.Latitude, minLon = location.Longitude, 
-                maxLat = location.Latitude, maxLon = location.Longitude;
+            float minLat = location.Latitude,
+                minLon = location.Longitude,
+                maxLat = location.Latitude,
+                maxLon = location.Longitude;
             for (uint v = 1; v < routerDb.Network.VertexCount; v++)
             {
                 location = routerDb.Network.GetVertex(v);
@@ -144,45 +146,51 @@ namespace routable_tiles
                 {
                     minLat = location.Latitude;
                 }
+
                 if (location.Latitude > maxLat)
                 {
                     maxLat = location.Latitude;
                 }
+
                 if (location.Longitude < minLon)
                 {
                     minLon = location.Longitude;
                 }
+
                 if (location.Longitude > maxLon)
                 {
                     maxLon = location.Longitude;
                 }
             }
+
             var tiles = (new Box(minLat, minLon, maxLat, maxLon)).GetTilesCovering(zoom);
 
             // extract all tiles.
             //System.Threading.Tasks.Parallel.ForEach(tiles, (tile) => 
             foreach (var tile in tiles)
             {
-                        var file = Path.Combine(path, tile.Zoom.ToInvariantString(), tile.X.ToInvariantString() + "-" + tile.Y.ToInvariantString() + ".geojson");
-                        var fileInfo = new FileInfo(file);
-                        if (!fileInfo.Directory.Exists)
-                        {
-                            fileInfo.Directory.Create();
-                        }
-                        var success = false;
+                var file = Path.Combine(path, tile.Zoom.ToInvariantString(),
+                    tile.X.ToInvariantString() + "-" + tile.Y.ToInvariantString() + ".geojson");
+                var fileInfo = new FileInfo(file);
+                if (!fileInfo.Directory.Exists)
+                {
+                    fileInfo.Directory.Create();
+                }
+
+                var success = false;
                 using (var stream = fileInfo.Open(FileMode.Create))
                 using (var streamWriter = new StreamWriter(stream))
                 {
                     success = routerDb.WriteRoutingTile(streamWriter, tile, x => x);
                 }
-                
+
                 if (!success)
                 {
                     fileInfo.Delete();
                 }
 
-                        Log.Information("Extracted tile:" + fileInfo.FullName);
-            };
+                Log.Information("Extracted tile:" + fileInfo.FullName);
+            }
         }
     }
 }
