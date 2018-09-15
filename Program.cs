@@ -68,6 +68,12 @@ namespace routable_tiles
                 return;
             }
 
+            var tileStats = string.Empty;
+            if (args.Length >= 4)
+            {
+                tileStats = args[3];
+            }
+
             // load routerdb.
             RouterDb routerDb = null;
             var sourceFile = args[0];
@@ -166,7 +172,6 @@ namespace routable_tiles
             var tiles = (new Box(minLat, minLon, maxLat, maxLon)).GetTilesCovering(zoom);
 
             // extract all tiles.
-            //System.Threading.Tasks.Parallel.ForEach(tiles, (tile) => 
             foreach (var tile in tiles)
             {
                 var file = Path.Combine(path, tile.Zoom.ToInvariantString(),
@@ -181,7 +186,15 @@ namespace routable_tiles
                 using (var stream = fileInfo.Open(FileMode.Create))
                 using (var streamWriter = new StreamWriter(stream))
                 {
-                    success = routerDb.WriteRoutingTile(streamWriter, tile, x => x);
+                    var result = routerDb.WriteRoutingTile(streamWriter, tile, x => x);
+                    if (result.success)
+                    {
+                        success = true;
+                        if (!string.IsNullOrWhiteSpace(tileStats))
+                        {
+                            File.AppendAllLines(tileStats, new[] {$"{tile.Zoom},{tile.X},{tile.Y},{result.vertices},{result.edges}"});
+                        }
+                    }
                 }
 
                 if (!success)

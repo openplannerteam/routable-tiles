@@ -21,25 +21,27 @@ namespace routable_tiles
         /// <summary>
         /// Gets a routable geojson tile.
         /// </summary>
-        public static bool WriteRoutingTile(this RouterDb db, TextWriter writer, Tile tile, Func<uint, long> getGlobalId)
+        public static (bool success, int vertices, int edges) WriteRoutingTile(this RouterDb db, TextWriter writer, Tile tile, Func<uint, long> getGlobalId)
         {
             if (db == null) { throw new ArgumentNullException("db"); }
             if (writer == null) { throw new ArgumentNullException("writer"); }
 
+            (bool success, int vertices, int edges) tileStats = (false, 0, 0);
+            
             var box = tile.Box;
             var minLatitude = box.MinLat;
             var maxLatitude = box.MaxLat;
             var minLongitude = box.MinLon;
             var maxLongitude = box.MaxLon;
 
-            var vertices = HilbertExtensions.Search(db.Network.GeometricGraph, minLatitude, minLongitude,
+            var vertices = db.Network.GeometricGraph.Search(minLatitude, minLongitude,
                 maxLatitude, maxLongitude);
             var vertexIds = new Dictionary<uint, long>();
             var edges = new HashSet<long>();
 
             if (vertices.Count == 0)
             {
-                return false;
+                return tileStats;
             }
 
             var jsonWriter = new JsonWriter(writer);
@@ -147,7 +149,7 @@ namespace routable_tiles
             jsonWriter.WriteArrayClose();
             jsonWriter.WriteClose();
 
-            return true;
+            return (true, vertexIds.Count, edges.Count);
         }
 
         internal static void WriteTile(this Tiles.Tile tile, JsonWriter jsonWriter)
