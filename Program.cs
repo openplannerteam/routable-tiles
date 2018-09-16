@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Itinero;
 using Itinero.Algorithms.Networks;
 using Itinero.Algorithms.Search.Hilbert;
@@ -41,7 +42,8 @@ namespace routable_tiles
             // {
             //     "/home/xivk/data/wechel.osm.pbf",
             //     "/home/xivk/work/itinero/routable-tiles/output",
-            //     "14"
+            //     "14",
+            //     "tile-stats.csv"
             // };
             if (args.Length < 3)
             {
@@ -129,6 +131,7 @@ namespace routable_tiles
             }
             else if (sourceFile.EndsWith(".routerdb"))
             {
+                Log.Information($"Loading {sourceFile}");
                 var stream = File.OpenRead(sourceFile);
                 routerDb = RouterDb.Deserialize(stream);
             }
@@ -137,6 +140,8 @@ namespace routable_tiles
                 Log.Information("Cannot process source file, .osm.pbf or .routerdb expected: " + args[0]);
                 return;
             }
+
+            Log.Information("Data loaded, generating tiles...");
 
             // extract tiles.
             var location = routerDb.Network.GetVertex(0);
@@ -169,40 +174,61 @@ namespace routable_tiles
                 }
             }
 
-            var tiles = (new Box(minLat, minLon, maxLat, maxLon)).GetTilesCovering(zoom);
+            var box = new Box(minLat, minLon, maxLat, maxLon);
+            //var tiles = ().GetTilesCovering(zoom);
+            var tiles = (new Tile(0, 0, 0)).GetSubtilesAt(zoom).ToList();
+
+            Log.Information($"Extracting {tiles.Count} tiles in [{box.MinLat},{box.MinLon},{box.MaxLat},{box.MaxLon}]...");
 
             // extract all tiles.
-            foreach (var tile in tiles)
+            using (var stream = new MemoryStream())
             {
-                var file = Path.Combine(path, tile.Zoom.ToInvariantString(),
-                    tile.X.ToInvariantString() + "-" + tile.Y.ToInvariantString() + ".geojson");
-                var fileInfo = new FileInfo(file);
-                if (!fileInfo.Directory.Exists)
+                for (var t = 0; t < tiles.Count; t++)
                 {
-                    fileInfo.Directory.Create();
-                }
+                    if (t % 10000 == 0)
+                    {
+                        Log.Information($"{(float)t / tiles.Count * 100:F4}%");
+                    }
 
-                var success = false;
-                using (var stream = fileInfo.Open(FileMode.Create))
-                using (var streamWriter = new StreamWriter(stream))
-                {
+                    var tile = tiles[t];
+                    if (!tile.Box.Overlaps(box))
+                    {
+                        continue;
+                    }
+
+                    stream.SetLength(0);
+                    stream.Seek(0, SeekOrigin.Begin);
+
+                    var streamWriter = new StreamWriter(stream);
                     var result = routerDb.WriteRoutingTile(streamWriter, tile, x => x);
                     if (result.success)
                     {
-                        success = true;
+                        streamWriter.Flush();
                         if (!string.IsNullOrWhiteSpace(tileStats))
                         {
-                            File.AppendAllLines(tileStats, new[] {$"{tile.Zoom},{tile.X},{tile.Y},{result.vertices},{result.edges}"});
+                            File.AppendAllLines(tileStats, new[] { $"{tile.Zoom},{tile.X},{tile.Y},{result.vertices},{result.edges}" });
                         }
                     }
-                }
 
-                if (!success)
-                {
-                    fileInfo.Delete();
-                }
+                    if (stream.Length > 0)
+                    {
+                        var file = Path.Combine(path, tile.Zoom.ToInvariantString(),
+                            tile.X.ToInvariantString(), tile.Y.ToInvariantString() + ".geojson");
+                        var fileInfo = new FileInfo(file);
+                        if (!fileInfo.Directory.Exists)
+                        {
+                            fileInfo.Directory.Create();
+                        }
 
-                Log.Information("Extracted tile:" + fileInfo.FullName);
+                        Log.Information("Extracted tile:" + fileInfo.FullName);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        using (var fileStream = fileInfo.Open(FileMode.Create))
+                        {
+                            stream.CopyTo(fileStream);
+                        }
+                    }
+
+                }
             }
         }
     }
