@@ -130,7 +130,7 @@ namespace routable_tiles
             else if (sourceFile.EndsWith(".routerdb"))
             {
                 var stream = File.OpenRead(sourceFile);
-                routerDb = RouterDb.Deserialize(stream);
+                routerDb = RouterDb.Deserialize(stream, RouterDbProfile.NoCache);
             }
             else
             {
