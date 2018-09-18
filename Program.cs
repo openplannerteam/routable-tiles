@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Itinero;
@@ -134,6 +135,7 @@ namespace routable_tiles
                 Log.Information($"Loading {sourceFile}");
                 var stream = File.OpenRead(sourceFile);
                 routerDb = RouterDb.Deserialize(stream, RouterDbProfile.NoCache);
+                //routerDb = RouterDb.Deserialize(stream);
             }
             else
             {
@@ -144,58 +146,40 @@ namespace routable_tiles
             Log.Information("Data loaded, generating tiles...");
 
             // extract tiles.
-            var location = routerDb.Network.GetVertex(0);
-            float minLat = location.Latitude,
-                minLon = location.Longitude,
-                maxLat = location.Latitude,
-                maxLon = location.Longitude;
-            for (uint v = 1; v < routerDb.Network.VertexCount; v++)
+            var tileIds = new HashSet<ulong>();
+            Tile lastTile = null;
+            for (uint v = 0; v < routerDb.Network.VertexCount; v++)
             {
-                location = routerDb.Network.GetVertex(v);
+                var location = routerDb.Network.GetVertex(v);
 
-                if (location.Latitude < minLat)
+                if (lastTile == null)
                 {
-                    minLat = location.Latitude;
+                    lastTile = Tile.WorldToTileIndex(location.Latitude, location.Longitude, zoom);
+                    tileIds.Add(lastTile.LocalId);
                 }
-
-                if (location.Latitude > maxLat)
+                else if (!lastTile.Box.Overlaps(location.Latitude, location.Longitude))
                 {
-                    maxLat = location.Latitude;
-                }
-
-                if (location.Longitude < minLon)
-                {
-                    minLon = location.Longitude;
-                }
-
-                if (location.Longitude > maxLon)
-                {
-                    maxLon = location.Longitude;
+                    lastTile = Tile.WorldToTileIndex(location.Latitude, location.Longitude, zoom);
+                    tileIds.Add(lastTile.LocalId);
                 }
             }
 
-            var box = new Box(minLat, minLon, maxLat, maxLon);
-            //var tiles = ().GetTilesCovering(zoom);
-            var tiles = (new Tile(0, 0, 0)).GetSubtilesAt(zoom).ToList();
-
-            Log.Information($"Extracting {tiles.Count} tiles in [{box.MinLat},{box.MinLon},{box.MaxLat},{box.MaxLon}]...");
+            Log.Information($"Extracting {tileIds.Count} tiles...");
 
             // extract all tiles.
             using (var stream = new MemoryStream())
             {
-                for (var t = 0; t < tiles.Count; t++)
+                var t = 0;
+                foreach(var tId in tileIds)
+                //for (var t = 0; t < tiles.Count; t++)
                 {
                     if (t % 10000 == 0)
                     {
-                        Log.Information($"{(float)t / tiles.Count * 100:F4}%");
+                        Log.Information($"{(float)t / tileIds.Count * 100:F4}%");
                     }
 
-                    var tile = tiles[t];
-                    if (!tile.Box.Overlaps(box))
-                    {
-                        continue;
-                    }
-
+                    var tile = Tile.FromLocalId(zoom, tId);
+                    
                     stream.SetLength(0);
                     stream.Seek(0, SeekOrigin.Begin);
 
@@ -228,6 +212,7 @@ namespace routable_tiles
                         }
                     }
 
+                    t++;
                 }
             }
         }
