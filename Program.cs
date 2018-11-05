@@ -92,7 +92,6 @@ namespace routable_tiles
                     // make sure the routerdb can handle multiple edges.
                     routerDb.Network.GeometricGraph.Graph.MarkAsMulti();
 
-
                     var vehicles = new Vehicle[]
                     {
                         Itinero.Osm.Vehicles.Vehicle.Car,
@@ -105,14 +104,14 @@ namespace routable_tiles
                     var target = new RouterDbStreamTarget(routerDb,
                         vehicles, false, processRestrictions: false, processors: settings.Processors,
                         simplifyEpsilonInMeter: settings.NetworkSimplificationEpsilon);
-                    target.KeepNodeIds = settings.KeepNodeIds;
+                    target.KeepNodeIds = true;
                     target.KeepWayIds = settings.KeepWayIds;
                     target.RegisterSource(progress);
                     target.Pull();
 
                     // optimize the network for routing.
-                    routerDb.SplitLongEdges();
-                    routerDb.ConvertToSimple();
+                    //routerDb.SplitLongEdges();
+                    //routerDb.ConvertToSimple();
 
                     // sort the network.
                     routerDb.Sort();
@@ -167,6 +166,7 @@ namespace routable_tiles
             Log.Information($"Extracting {tileIds.Count} tiles...");
 
             // extract all tiles.
+            var nodeIds = routerDb.VertexData.Get<long>("node_id");
             using (var stream = new MemoryStream())
             {
                 var t = 0;
@@ -182,9 +182,9 @@ namespace routable_tiles
                     
                     stream.SetLength(0);
                     stream.Seek(0, SeekOrigin.Begin);
-
+                    
                     var streamWriter = new StreamWriter(stream);
-                    var result = routerDb.WriteRoutingTile(streamWriter, tile, x => x);
+                    var result = routerDb.WriteRoutingTile(streamWriter, tile, x => nodeIds[x]);
                     if (result.success)
                     {
                         streamWriter.Flush();
