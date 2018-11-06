@@ -1,8 +1,8 @@
 # routable-tiles
 
-A CLI tool to generate routable tiles.
+[![Build status](https://build.anyways.eu/app/rest/builds/buildType:(id:anyways_Openplannerteam_RoutableTiles)/statusIcon)](https://build.anyways.eu/viewType.html?buildTypeId=anyways_Openplannerteam_RoutableTiles)  
 
-The main goal of this tool is to generate ready to use 'routable tiles' that can be consumed by existing routeplanning apps.
+A CLI tool to generate routable tiles. The main goal of this tool is to generate ready to use 'routable tiles' that can be consumed by existing routeplanning apps.
 
 This is an example for the city of Ghent:
 
@@ -19,7 +19,7 @@ Or the Benelux:
 
 Now run the following:
 
-```dotnet run /path/to/source-file.osm.pbf ./output/ 12```
+```dotnet run -c release /path/to/source-file.osm.pbf ./output/ 12```
 
 A complete example splitting Belgium in tiles for zoom-level 12:
 
@@ -30,4 +30,3 @@ dotnet run belgium-latest.osm.pbf ./output 12
 ```
 
 The result of a split can be seen in an example area uploaded [here](https://github.com/openplannerteam/routable-tiles/tree/master/examples/gent/14).
-
