@@ -167,6 +167,7 @@ namespace routable_tiles
 
             // extract all tiles.
             var nodeIds = routerDb.VertexData.Get<long>("node_id");
+            var nodeVersions = routerDb.VertexData.Get<ushort>("node_version");
             using (var stream = new MemoryStream())
             {
                 var t = 0;
@@ -184,7 +185,8 @@ namespace routable_tiles
                     stream.Seek(0, SeekOrigin.Begin);
                     
                     var streamWriter = new StreamWriter(stream);
-                    var result = routerDb.WriteRoutingTile(streamWriter, tile, x => nodeIds[x]);
+                    var result = routerDb.WriteRoutingTile(streamWriter, tile, x => VertexIdGenerator.BuildVertexId(
+                        nodeIds[x], nodeVersions[x]));
                     if (result.success)
                     {
                         streamWriter.Flush();
