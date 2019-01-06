@@ -8,6 +8,18 @@ namespace RoutableTiles.CLI
     {
         static void Main(string[] args)
         {
+//#if DEBUG
+            if (args == null || args.Length == 0)
+            {
+                args = new string[]
+                {
+                    @"/home/xivk/work/data/OSM/luxembourg-latest.osm.pbf",
+                    @"/home/xivk/work/openplannerteam/data/tiles/",
+                    @"14"
+                };
+            }
+//#endif
+            
             // enable logging.
             OsmSharp.Logging.Logger.LogAction = (origin, level, message, parameters) =>
             {
@@ -43,9 +55,8 @@ namespace RoutableTiles.CLI
 
             try
             {
-
                 // validate arguments.
-                if (args == null || args.Length < 3)
+                if (args.Length < 3)
                 {
                     Log.Fatal("Expected 3 arguments: inputfile outputpath zoom");
                     return;
@@ -71,11 +82,39 @@ namespace RoutableTiles.CLI
                 var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
                 progress.RegisterSource(source);
 
-                // splitting tiles.
+                // splitting tiles and writing indexes.
                 var ticks = DateTime.Now.Ticks;
                 Build.Builder.Build(progress, args[1], zoom);
                 var span = new TimeSpan(DateTime.Now.Ticks - ticks);
                 Log.Information($"Splitting tool {span}");
+                
+                // create a database object that can read individual objects.
+                Console.WriteLine("Loading database...");
+                var db = new Database(args[1]);
+                
+                foreach (var baseTile in db.GetTiles())
+                {
+                    Log.Information($"Base tile found: {baseTile}");
+
+                    var file = Path.Combine(args[1], baseTile.Zoom.ToString(), baseTile.X.ToString(),
+                        baseTile.Y.ToString() + ".osm");
+                    var fileInfo = new FileInfo(file);
+                    if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
+                    {
+                        fileInfo.Directory.Create();
+                    }
+
+                    using (var stream = File.Open(file, FileMode.Create))
+                    {
+                        var target = new OsmSharp.Streams.XmlOsmStreamTarget(stream);
+                        target.Initialize();
+
+                        db.GetRoutableTile(baseTile, target);
+
+                        target.Flush();
+                        target.Close();
+                    }
+                }
             }
             catch (Exception e)
             {

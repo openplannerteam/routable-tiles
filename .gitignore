@@ -45,3 +45,5 @@ output/*
 
 .idea
 .idea/*
+
+**/logs/*
