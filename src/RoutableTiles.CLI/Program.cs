@@ -60,7 +60,7 @@ namespace RoutableTiles.CLI
                 // validate arguments.
                 if (args.Length < 4)
                 {
-                    Log.Fatal("Expected 3 arguments: inputfile cache zoom routablestiles");
+                    Log.Fatal("Expected 4 arguments: inputfile cache zoom routablestiles");
                     return;
                 }
                 if (!File.Exists(args[0]))
@@ -84,16 +84,24 @@ namespace RoutableTiles.CLI
                     return;
                 }
 
-                var source = new OsmSharp.Streams.PBFOsmStreamSource(
-                    File.OpenRead(args[0]));
-                var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
-                progress.RegisterSource(source);
+                if (!File.Exists(Path.Combine(args[1], "0", "0", "0.nodes.idx")))
+                {
+                    Log.Information("The tiled DB doesn't exist yet, rebuilding...");
+                    var source = new OsmSharp.Streams.PBFOsmStreamSource(
+                        File.OpenRead(args[0]));
+                    var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
+                    progress.RegisterSource(source);
 
-                // splitting tiles and writing indexes.
-                var ticks = DateTime.Now.Ticks;
-                Build.Builder.Build(progress, args[1], zoom);
-                var span = new TimeSpan(DateTime.Now.Ticks - ticks);
-                Log.Information($"Splitting tool {span}");
+                    // splitting tiles and writing indexes.
+                    var ticks = DateTime.Now.Ticks;
+                    Build.Builder.Build(progress, args[1], zoom);
+                    var span = new TimeSpan(DateTime.Now.Ticks - ticks);
+                    Log.Information($"Building DB took {span}");
+                }
+                else
+                {
+                    Log.Information("The tiled DB already exists, reusing...");
+                }
                 
                 // create a database object that can read individual objects.
                 Console.WriteLine("Loading database...");
