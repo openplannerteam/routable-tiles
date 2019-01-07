@@ -4,7 +4,7 @@
 ############################################################
 
 # Set the base image to Ubuntu
-FROM microsoft/dotnet:2.2-sdk
+FROM microsoft/dotnet:2.1-sdk
 
 # File Author / Maintainer
 MAINTAINER Anyways BVBA
@@ -14,7 +14,7 @@ RUN mkdir /var/app
 RUN mkdir /var/app/source
 RUN mkdir /var/app/target
 RUN mkdir /var/app/logs
-COPY ./bin/release/netcoreapp2.2/linux-x64/publish /var/app
+COPY ./bin/release/netcoreapp2.1/linux-x64/publish /var/app
 
 # couple data folder data volume.
 VOLUME ["/var/app/source"]
