@@ -26,6 +26,9 @@ namespace RoutableTiles.IO.JsonLD
         {
             _jsonWriter = new JsonWriter(new StreamWriter(_stream));
             _jsonWriter.WriteOpen();
+            
+            _jsonWriter.WriteContext();
+            
             _jsonWriter.WritePropertyName("@graph");
             _jsonWriter.WriteArrayOpen();
         }
