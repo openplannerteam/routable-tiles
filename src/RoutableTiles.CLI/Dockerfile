@@ -14,7 +14,7 @@ RUN mkdir /var/app
 RUN mkdir /var/app/source
 RUN mkdir /var/app/target
 RUN mkdir /var/app/logs
-COPY ./bin/release/netcoreapp2.1/linux-x64/publish /var/app
+COPY ./bin/Release/netcoreapp2.1/linux-x64/publish /var/app
 
 # couple data folder data volume.
 VOLUME ["/var/app/source"]
