@@ -9,17 +9,18 @@ namespace RoutableTiles.CLI
     {
         static void Main(string[] args)
         {
-//#if DEBUG
+#if DEBUG
             if (args == null || args.Length == 0)
             {
                 args = new string[]
                 {
                     @"/home/xivk/work/data/OSM/luxembourg-highways.osm.pbf",
-                    @"/home/xivk/work/openplannerteam/data/tiles/",
-                    @"14"
+                    @"/home/xivk/work/openplannerteam/data/tilesdb/",
+                    @"14",
+                    @"/home/xivk/work/openplannerteam/data/routabletiles/",
                 };
             }
-//#endif
+#endif
             
             // enable logging.
             OsmSharp.Logging.Logger.LogAction = (origin, level, message, parameters) =>
@@ -57,9 +58,9 @@ namespace RoutableTiles.CLI
             try
             {
                 // validate arguments.
-                if (args.Length < 3)
+                if (args.Length < 4)
                 {
-                    Log.Fatal("Expected 3 arguments: inputfile outputpath zoom");
+                    Log.Fatal("Expected 3 arguments: inputfile cache zoom routablestiles");
                     return;
                 }
                 if (!File.Exists(args[0]))
@@ -69,12 +70,17 @@ namespace RoutableTiles.CLI
                 }
                 if (!Directory.Exists(args[1]))
                 {
-                    Log.Fatal("Output directory doesn't exist: {0}", args[1]);
+                    Log.Fatal("Cache directory doesn't exist: {0}", args[1]);
                     return;
                 }
                 if (!uint.TryParse(args[2], out var zoom))
                 {
                     Log.Fatal("Can't parse zoom: {0}", args[2]);
+                    return;
+                }
+                if (!Directory.Exists(args[3]))
+                {
+                    Log.Fatal("Output directory doesn't exist: {0}", args[3]);
                     return;
                 }
 
@@ -97,8 +103,8 @@ namespace RoutableTiles.CLI
                 {
                     Log.Information($"Base tile found: {baseTile}");
 
-                    var file = Path.Combine(args[1], baseTile.Zoom.ToString(), baseTile.X.ToString(),
-                        baseTile.Y.ToString() + ".osm.json");
+                    var file = Path.Combine(args[3], baseTile.Zoom.ToString(), baseTile.X.ToString(),
+                        baseTile.Y.ToString(), "index.json");
                     var fileInfo = new FileInfo(file);
                     if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
                     {
