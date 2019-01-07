@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Streams.Filters;
@@ -10,72 +11,55 @@ namespace RoutableTiles.IO.JsonLD
     /// <summary>
     /// An OSM stream target to write one routable tile.
     /// </summary>
-    public class TileOsmStreamTarget : OsmStreamFilter
+    public class TileOsmStreamTarget : OsmStreamTarget, IDisposable
     {
-        private readonly (uint x, uint y, uint zoom) _tile;
-        private readonly Dictionary<long, Node> _nodesInTile;
+        private readonly Stream _stream;
 
-        public TileOsmStreamTarget(uint x, uint y, uint zoom)
+        public TileOsmStreamTarget(Stream stream)
         {
-            _tile = (x, y, zoom);
+            _stream = stream;
         }
 
-        public override bool MoveNext(bool ignoreNodes, bool ignoreWays, bool ignoreRelations)
+        private JsonWriter _jsonWriter;
+
+        public override void Initialize()
         {
-            if (!this.Source.MoveNext(ignoreNodes, ignoreWays, ignoreRelations)) return false;
-
-            var osmGeo = this.Source.Current();
-
-            switch (osmGeo.Type)
-            {
-                case OsmGeoType.Node:
-                    
-                    break;
-                case OsmGeoType.Way:
-                    break;
-                case OsmGeoType.Relation:
-                    break;
-            }
-
-            return true;
+            _jsonWriter = new JsonWriter(new StreamWriter(_stream));
+            _jsonWriter.WriteOpen();
+            _jsonWriter.WritePropertyName("@graph");
+            _jsonWriter.WriteArrayOpen();
         }
-        
+
+        public override void AddNode(Node node)
+        {
+            _jsonWriter.WriteNode(node);
+        }
+
+        public override void AddWay(Way way)
+        {
+            _jsonWriter.WriteWay(way);
+        }
+
+        public override void AddRelation(Relation relation)
+        {
+            // _jsonWriter.WriteRelation(relation);
+        }
+
+        public override void Flush()
+        {
+            _jsonWriter.WriteArrayClose();
+            _jsonWriter.WriteClose();
+            _jsonWriter.Flush();
+
+            base.Flush();
+        }
+
         /// <summary>
-        /// Converts lat/lon to tile coordinates.
+        /// Releases all resources used by this object.
         /// </summary>
-        private static Tile WorldToTileIndex(double latitude, double longitude, uint zoom)
+        public void Dispose()
         {
-            var n = (int)Math.Floor(Math.Pow(2, zoom));
-
-            var rad = (latitude / 180d) * System.Math.PI;
-
-            var x = (uint)((longitude + 180.0f) / 360.0f * n);
-            var y = (uint)(
-                (1.0f - Math.Log(Math.Tan(rad) + 1.0f / Math.Cos(rad))
-                 / Math.PI) / 2f * n);
-
-            return new Tile { X = x, Y = y, Zoom = zoom };
+            _jsonWriter.Dispose();
         }
-
-        public override OsmGeo Current()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void Reset()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void RegisterSource(OsmStreamSource source)
-        {
-            if (!source.IsSorted)
-            {
-                throw new Exception($"{nameof(TileOsmStreamTarget)} can only handle sorted source streams.");
-            }
-            base.RegisterSource(source);
-        }
-
-        public override bool CanReset { get; }
     }
 }

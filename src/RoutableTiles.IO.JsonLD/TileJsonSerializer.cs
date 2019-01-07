@@ -15,9 +15,9 @@ namespace RoutableTiles.IO.JsonLD
             
             writer.WriteOpen();
             
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, true);
+            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
             writer.WriteProperty("geo:long", node.Longitude.ToInvariantString());
-            writer.WriteProperty("geo:lat", node.Longitude.ToInvariantString());
+            writer.WriteProperty("geo:lat", node.Latitude.ToInvariantString());
             
             writer.WriteClose();
         }
@@ -29,7 +29,7 @@ namespace RoutableTiles.IO.JsonLD
             
             writer.WriteOpen();
             
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{way.Id}", true, true);
+            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{way.Id}", true, false);
             writer.WriteProperty("@type", "osm:Way", true, true);
 
             if (way.Tags != null)
@@ -42,7 +42,7 @@ namespace RoutableTiles.IO.JsonLD
                             writer.WriteProperty("rdfs:label", tag.Value, true, true);
                             break;
                         case "highway":
-                            writer.WriteProperty("osm:highway", tag.Value, true, true);
+                            writer.WriteProperty("osm:highway", "osm:" + tag.Value, true, true);
                             break;
                         case "maxspeed":
                             writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
@@ -58,7 +58,7 @@ namespace RoutableTiles.IO.JsonLD
             {
                 foreach (var node in way.Nodes)
                 {
-                    writer.WriteArrayValue($"http://www.openstreetmap.org/node/{node}");
+                    writer.WriteArrayValue($"http://www.openstreetmap.org/node/{node}", true, false);
                 }
             }
             writer.WriteArrayClose();

@@ -7,7 +7,7 @@ namespace RoutableTiles.IO.JsonLD
     /// <summary>
     /// A json-writer.
     /// </summary>
-    internal class JsonWriter
+    internal class JsonWriter : IDisposable
     {
         private readonly TextWriter _writer;
         private readonly Stack<Status> _statusStack;
@@ -229,11 +229,11 @@ namespace RoutableTiles.IO.JsonLD
         /// <summary>
         /// Writes an array value.
         /// </summary>
-        public void WriteArrayValue(string value)
+        public void WriteArrayValue(string value, bool useQuotes = false, bool escape = true)
         {
             if (_statusStack.Count == 0)
             {
-                throw new Exception("Cannot open array at this point.");
+                throw new Exception("Cannot write array at this point.");
             }
             else
             {
@@ -241,7 +241,7 @@ namespace RoutableTiles.IO.JsonLD
                 if (status != Status.ArrayOpenWritten &&
                     status != Status.ArrayValueWritten)
                 {
-                    throw new Exception("Cannot open array at this point.");
+                    throw new Exception("Cannot write array at this point.");
                 }
 
                 if (status == Status.ArrayValueWritten)
@@ -249,8 +249,14 @@ namespace RoutableTiles.IO.JsonLD
                     _writer.Write(",");
                 }
             }
-
+            
+            if (useQuotes) _writer.Write('"');
+            if (escape)
+            {
+                value = JsonTools.Escape(value);
+            }
             _writer.Write(value);
+            if (useQuotes) _writer.Write('"');
             _statusStack.Push(Status.ArrayValueWritten);
         }
 
@@ -267,6 +273,22 @@ namespace RoutableTiles.IO.JsonLD
             PropertyValueWritten,
             ArrayOpenWritten,
             ArrayValueWritten
+        }
+        
+        /// <summary>
+        /// Flushes this writer.
+        /// </summary>
+        public void Flush()
+        {
+            _writer.Flush();
+        }
+
+        /// <summary>
+        /// Releases all resources used by the json writer object.
+        /// </summary>
+        public void Dispose()
+        {
+            _writer.Dispose();
         }
     }
 }

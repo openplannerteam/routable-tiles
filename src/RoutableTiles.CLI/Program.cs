@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using RoutableTiles.IO.JsonLD;
 using Serilog;
 
 namespace RoutableTiles.CLI
@@ -13,7 +14,7 @@ namespace RoutableTiles.CLI
             {
                 args = new string[]
                 {
-                    @"/home/xivk/work/data/OSM/luxembourg-latest.osm.pbf",
+                    @"/home/xivk/work/data/OSM/luxembourg-highways.osm.pbf",
                     @"/home/xivk/work/openplannerteam/data/tiles/",
                     @"14"
                 };
@@ -97,7 +98,7 @@ namespace RoutableTiles.CLI
                     Log.Information($"Base tile found: {baseTile}");
 
                     var file = Path.Combine(args[1], baseTile.Zoom.ToString(), baseTile.X.ToString(),
-                        baseTile.Y.ToString() + ".osm");
+                        baseTile.Y.ToString() + ".osm.json");
                     var fileInfo = new FileInfo(file);
                     if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
                     {
@@ -106,7 +107,7 @@ namespace RoutableTiles.CLI
 
                     using (var stream = File.Open(file, FileMode.Create))
                     {
-                        var target = new OsmSharp.Streams.XmlOsmStreamTarget(stream);
+                        var target = new TileOsmStreamTarget(stream);
                         target.Initialize();
 
                         db.GetRoutableTile(baseTile, target);
