@@ -2,9 +2,9 @@ using System;
 using System.Runtime.CompilerServices;
 using OsmSharp;
 
-[assembly: InternalsVisibleTo("RoutableTiles.Tests")]
-[assembly: InternalsVisibleTo("RoutableTiles.Tests.Functional")]
-namespace RoutableTiles.IO.JsonLD
+[assembly: InternalsVisibleTo("RouteableTiles.Tests")]
+[assembly: InternalsVisibleTo("RouteableTiles.Tests.Functional")]
+namespace RouteableTiles.IO.JsonLD
 {
     internal static class JsonSerializer
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using RoutableTiles.IO.JsonLD;
+using RouteableTiles.IO.JsonLD;
 using Serilog;
 
 namespace RoutableTiles.CLI

@@ -5,7 +5,7 @@ using Reminiscence.Arrays;
 using Reminiscence.IO;
 using Reminiscence.IO.Streams;
 
-namespace RoutableTiles.Build.Indexes
+namespace RouteableTiles.Build.Indexes
 {
     /// <summary>
     /// Represents an index matching id's to one or more subtiles.

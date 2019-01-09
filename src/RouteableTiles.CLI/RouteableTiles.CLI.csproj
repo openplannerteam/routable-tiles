@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\RoutableTiles.IO.JsonLD\RoutableTiles.IO.JsonLD.csproj" />
-      <ProjectReference Include="..\RoutableTiles\RoutableTiles.csproj" />
+      <ProjectReference Include="..\RouteableTiles.IO.JsonLD\RouteableTiles.IO.JsonLD.csproj" />
+      <ProjectReference Include="..\RouteableTiles\RouteableTiles.csproj" />
     </ItemGroup>
 
     <ItemGroup>

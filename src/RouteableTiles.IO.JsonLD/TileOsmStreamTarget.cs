@@ -4,9 +4,9 @@ using System.IO;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Streams.Filters;
-using RoutableTiles.Tiles;
+using RouteableTiles.Tiles;
 
-namespace RoutableTiles.IO.JsonLD
+namespace RouteableTiles.IO.JsonLD
 {
     /// <summary>
     /// An OSM stream target to write one routable tile.

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RoutableTiles.Tiles
+namespace RouteableTiles.Tiles
 {
     /// <summary>
     /// Contains extension methods for the tile class.

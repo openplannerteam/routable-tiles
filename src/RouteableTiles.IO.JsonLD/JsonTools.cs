@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace RoutableTiles.IO.JsonLD
+namespace RouteableTiles.IO.JsonLD
 {
     /// <summary>
     /// Contains some tools for json.

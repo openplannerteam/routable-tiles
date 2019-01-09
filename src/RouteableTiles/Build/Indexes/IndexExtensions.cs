@@ -1,7 +1,7 @@
 using System.IO;
-using RoutableTiles.IO;
+using RouteableTiles.IO;
 
-namespace RoutableTiles.Build.Indexes
+namespace RouteableTiles.Build.Indexes
 {
     internal static class IndexExtensions
     {

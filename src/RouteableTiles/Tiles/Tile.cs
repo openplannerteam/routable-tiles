@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RoutableTiles.Tiles
+namespace RouteableTiles.Tiles
 {
     /// <summary>
     /// Represents a tile.

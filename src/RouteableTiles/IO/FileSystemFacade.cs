@@ -1,4 +1,4 @@
-namespace RoutableTiles.IO
+namespace RouteableTiles.IO
 {
     /// <summary>
     /// Defines a facade for the file system.

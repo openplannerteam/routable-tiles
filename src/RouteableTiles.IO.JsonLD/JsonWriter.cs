@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace RoutableTiles.IO.JsonLD
+namespace RouteableTiles.IO.JsonLD
 {
     /// <summary>
     /// A json-writer.

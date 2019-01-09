@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace RoutableTiles.IO
+namespace RouteableTiles.IO
 {
     /// <summary>
     /// An abstract file system.

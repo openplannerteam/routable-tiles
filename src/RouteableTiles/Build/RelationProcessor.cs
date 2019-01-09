@@ -4,11 +4,11 @@ using System.IO;
 using OsmSharp;
 using OsmSharp.IO.Binary;
 using OsmSharp.Streams;
-using RoutableTiles.Build.Indexes;
-using RoutableTiles.IO;
-using RoutableTiles.Tiles;
+using RouteableTiles.Build.Indexes;
+using RouteableTiles.IO;
+using RouteableTiles.Tiles;
 
-namespace RoutableTiles.Build
+namespace RouteableTiles.Build
 {
     /// <summary>
     /// The relation processor.
