@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using OsmSharp;
 using OsmSharp.IO.Binary;
 using OsmSharp.Streams;
@@ -23,9 +24,10 @@ namespace RoutableTiles.Build
         /// <param name="maxZoom">The maximum zoom.</param>
         /// <param name="tile">The tile being split.</param>
         /// <param name="nodeIndex">The node index.</param>
+        /// <param name="compressed">A flag to allow compression of target files.</param>
         /// <returns>The indexed node id's with a masked zoom.</returns>
         public static Index Process(OsmStreamSource source, string path, uint maxZoom, Tile tile,
-            Index nodeIndex)
+            Index nodeIndex, bool compressed = false)
         { 
             // split ways.
             var subtiles = new Dictionary<ulong, Stream>();
@@ -72,15 +74,7 @@ namespace RoutableTiles.Build
                     // initialize stream if needed.
                     if (stream == null)
                     {
-                        var file = FileSystemFacade.FileSystem.Combine(path, wayTile.Zoom.ToInvariantString(), wayTile.X.ToInvariantString(),
-                            wayTile.Y.ToInvariantString() + ".ways.osm.bin");
-                        var fileDirectory = FileSystemFacade.FileSystem.DirectoryForFile(file);
-                        if (!FileSystemFacade.FileSystem.DirectoryExists(fileDirectory))
-                        {
-                            FileSystemFacade.FileSystem.CreateDirectory(fileDirectory);
-                        }
-                        stream = FileSystemFacade.FileSystem.Open(file, FileMode.Create);
-
+                        stream = DatabaseCommon.CreateTile(path, OsmGeoType.Way, wayTile, compressed);
                         subtiles[wayTile.LocalId] = stream;
                     }
 

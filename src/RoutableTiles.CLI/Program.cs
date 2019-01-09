@@ -14,7 +14,7 @@ namespace RoutableTiles.CLI
             {
                 args = new string[]
                 {
-                    @"/home/xivk/work/data/OSM/luxembourg-highways.osm.pbf",
+                    @"/home/xivk/work/data/OSM/belgium-highways.osm.pbf",
                     @"/home/xivk/work/openplannerteam/data/tilesdb/",
                     @"14",
                     @"/home/xivk/work/openplannerteam/data/routabletiles/",
@@ -84,6 +84,8 @@ namespace RoutableTiles.CLI
                     return;
                 }
 
+                var ticks = DateTime.Now.Ticks;
+                bool compressed = true;
                 if (!File.Exists(Path.Combine(args[1], "0", "0", "0.nodes.idx")))
                 {
                     Log.Information("The tiled DB doesn't exist yet, rebuilding...");
@@ -93,43 +95,42 @@ namespace RoutableTiles.CLI
                     progress.RegisterSource(source);
 
                     // splitting tiles and writing indexes.
-                    var ticks = DateTime.Now.Ticks;
-                    Build.Builder.Build(progress, args[1], zoom);
-                    var span = new TimeSpan(DateTime.Now.Ticks - ticks);
-                    Log.Information($"Building DB took {span}");
+                    Build.Builder.Build(progress, args[1], zoom, compressed);
                 }
                 else
                 {
                     Log.Information("The tiled DB already exists, reusing...");
                 }
                 
-//                // create a database object that can read individual objects.
-//                Console.WriteLine("Loading database...");
-//                var db = new Database(args[1]);
-//                
-//                foreach (var baseTile in db.GetTiles())
-//                {
-//                    Log.Information($"Base tile found: {baseTile}");
-//
-//                    var file = Path.Combine(args[3], baseTile.Zoom.ToString(), baseTile.X.ToString(),
-//                        baseTile.Y.ToString(), "index.json");
-//                    var fileInfo = new FileInfo(file);
-//                    if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
-//                    {
-//                        fileInfo.Directory.Create();
-//                    }
-//
-//                    using (var stream = File.Open(file, FileMode.Create))
-//                    {
-//                        var target = new TileOsmStreamTarget(stream);
-//                        target.Initialize();
-//
-//                        db.GetRoutableTile(baseTile, target);
-//
-//                        target.Flush();
-//                        target.Close();
-//                    }
-//                }
+                // create a database object that can read individual objects.
+                Console.WriteLine("Loading database...");
+                var db = new Database(args[1], zoom: zoom, compressed: compressed);
+                
+                foreach (var baseTile in db.GetTiles())
+                {
+                    Log.Information($"Base tile found: {baseTile}");
+
+                    var file = Path.Combine(args[3], baseTile.Zoom.ToString(), baseTile.X.ToString(),
+                        baseTile.Y.ToString(), "index.json");
+                    var fileInfo = new FileInfo(file);
+                    if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
+                    {
+                        fileInfo.Directory.Create();
+                    }
+
+                    using (var stream = File.Open(file, FileMode.Create))
+                    {
+                        var target = new TileOsmStreamTarget(stream);
+                        target.Initialize();
+
+                        db.GetRoutableTile(baseTile, target);
+
+                        target.Flush();
+                        target.Close();
+                    }
+                }
+                var span = new TimeSpan(DateTime.Now.Ticks - ticks);
+                Log.Information($"Writing tiles took: {span}");
             }
             catch (Exception e)
             {

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
+using OsmSharp;
 using OsmSharp.Streams;
 using RoutableTiles.Build.Indexes;
 using Serilog;
@@ -17,37 +19,30 @@ namespace RoutableTiles.Build
         /// <summary>
         /// Builds a new database and write the structure to the given path.
         /// </summary>
-        public static void Build(OsmStreamSource source, string path, uint maxZoom = 14)
+        public static void Build(OsmStreamSource source, string path, uint maxZoom = 12, bool compressed = false)
         {
             if (source == null) { throw new ArgumentNullException(nameof(source)); }
             if (path == null) { throw new ArgumentNullException(nameof(path)); }
             if (!source.CanReset) { throw new ArgumentException("Source cannot be reset."); }
             if (!FileSystemFacade.FileSystem.DirectoryExists(path)) { throw new ArgumentException("Output path does not exist."); }
             
-            var tiles = BuildInitial(source, path, maxZoom, new Tile(0, 0, 0));
+            Log.Logger.Information("Building for tile {0}/{1}/{2}...", 0, 0, 0);
+            var tiles = BuildInitial(source, path, maxZoom, new Tile(0, 0, 0), compressed);
             while (true)
             {
                 var newTiles = new List<Tile>();
 
-                System.Threading.Tasks.Parallel.ForEach(tiles, (subTile) =>
+                System.Threading.Tasks.Parallel.For(0, tiles.Count, (t) =>
                 {
-                    var subTiles = Build(path, maxZoom, subTile);
+                    var subTile = tiles[t];
+                    Log.Logger.Information($"Building for tile ({t + 1}/{tiles.Count}):{subTile.Zoom}/{subTile.X}/{subTile.Y}...");
+                    var subTiles = Build(path, maxZoom, subTile, compressed);
 
                     lock (newTiles)
                     {
                         newTiles.AddRange(subTiles);
                     }
                 });
-
-//                foreach (var subTile in tiles)
-//                {
-//                   var subTiles = Build(path, maxZoom, subTile);
-//
-//                   lock (newTiles)
-//                   {
-//                       newTiles.AddRange(subTiles);
-//                   }
-//                }
 
                 if (newTiles.Count == 0)
                 {
@@ -58,18 +53,16 @@ namespace RoutableTiles.Build
             }
         }
 
-        private static List<Tile> BuildInitial(OsmStreamSource source, string path, uint maxZoom, Tile tile)
+        private static List<Tile> BuildInitial(OsmStreamSource source, string path, uint maxZoom, Tile tile, bool compressed = false)
         {
-            Log.Logger.Information("Building for tile {0}/{1}/{2}...", tile.Zoom, tile.X, tile.Y);
-
             // split nodes and return nodes index and non-empty tiles.
-            var nodeIndex = NodeProcessor.Process(source, path, maxZoom, tile, out var nonEmptyTiles, out var hasNext);
+            var nodeIndex = NodeProcessor.Process(source, path, maxZoom, tile, out var nonEmptyTiles, out var hasNext, compressed);
 
             // split ways using the node index and return the way index.
             Index wayIndex = null;
             if (hasNext)
             {
-                wayIndex = WayProcessor.Process(source, path, maxZoom, tile, nodeIndex);
+                wayIndex = WayProcessor.Process(source, path, maxZoom, tile, nodeIndex, compressed);
             }
 
 //            // split relations using the node and way index and return the relation index.
@@ -94,42 +87,39 @@ namespace RoutableTiles.Build
         /// <summary>
         /// Builds the database and writes the structure to the given by by splitting the given zoom level.
         /// </summary>
-        private static List<Tile> Build(string path, uint maxZoom, Tile tile)
+        private static List<Tile> Build(string path, uint maxZoom, Tile tile, bool compressed = false)
         {
-            Log.Logger.Information("Building for tile {0}/{1}/{2}...", tile.Zoom, tile.X, tile.Y);
-
             // split nodes and return index and non-empty tiles.
             List<Tile> nonEmptyTiles = null;
             Index nodeIndex = null;
-            var nodeFile = FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                tile.X.ToString(), tile.Y.ToString() + ".nodes.osm.bin");
+            
+            var nodeFile = DatabaseCommon.BuildPathToTile(path, OsmGeoType.Node, tile, compressed);
             if (!FileSystemFacade.FileSystem.Exists(nodeFile))
             {
                 Log.Logger.Warning("Tile {0}/{1}/{2} not found: {3}", tile.Zoom, tile.X, tile.Y,
                     nodeFile);
                 return new List<Tile>();
             }
-            using (var nodeStream = FileSystemFacade.FileSystem.OpenRead(nodeFile))
+            using (var nodeStream = DatabaseCommon.LoadTile(path, OsmGeoType.Node, tile, compressed))
             {
                 var nodeSource = new OsmSharp.Streams.BinaryOsmStreamSource(nodeStream);
 
                 // split nodes and return nodes index and non-empty tiles.
                 nodeIndex = NodeProcessor.Process(nodeSource, path, maxZoom, tile, out nonEmptyTiles,
-                    out _);
+                    out _, compressed);
             }
 
             // build the ways index.
             Index wayIndex = null;
-            var wayFile = FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                tile.X.ToString(), tile.Y.ToString() + ".ways.osm.bin");
+            var wayFile = DatabaseCommon.BuildPathToTile(path, OsmGeoType.Way, tile, compressed);
             if (FileSystemFacade.FileSystem.Exists(wayFile))
             {
-                using (var wayStream = FileSystemFacade.FileSystem.OpenRead(wayFile))
+                using (var wayStream = DatabaseCommon.LoadTile(path, OsmGeoType.Way, tile, compressed))
                 {
                     var waySource = new OsmSharp.Streams.BinaryOsmStreamSource(wayStream);
                     if (waySource.MoveNext())
                     {
-                        wayIndex = WayProcessor.Process(waySource, path, maxZoom, tile, nodeIndex);
+                        wayIndex = WayProcessor.Process(waySource, path, maxZoom, tile, nodeIndex, compressed);
                     }
                 }
             }  

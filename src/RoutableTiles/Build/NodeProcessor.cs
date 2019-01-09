@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using OsmSharp;
 using OsmSharp.IO.Binary;
 using OsmSharp.Streams;
@@ -23,9 +24,10 @@ namespace RoutableTiles.Build
         /// <param name="tile">The tile being split.</param>
         /// <param name="nonEmptyTiles">The subtiles that have data in them.</param>
         /// <param name="hasNext">A flag indicating if there is still more data.</param>
+        /// <param name="compressed">A flag to allow compression of target files.</param>
         /// <returns>The indexed node id's with a masked zoom.</returns>
         public static Index Process(OsmStreamSource source, string path, uint maxZoom, Tile tile,
-            out List<Tile> nonEmptyTiles, out bool hasNext)
+            out List<Tile> nonEmptyTiles, out bool hasNext, bool compressed = false)
         {            
             // build the set of possible subtiles.
             var subtiles = new Dictionary<ulong, Stream>();
@@ -59,15 +61,7 @@ namespace RoutableTiles.Build
                 // initialize stream if needed.
                 if (stream == null)
                 {
-                    var file = FileSystemFacade.FileSystem.Combine(path, nodeTile.Zoom.ToInvariantString(), nodeTile.X.ToInvariantString(),
-                        nodeTile.Y.ToInvariantString() + ".nodes.osm.bin");
-                    var fileDirectory = FileSystemFacade.FileSystem.DirectoryForFile(file);
-                    if (!FileSystemFacade.FileSystem.DirectoryExists(fileDirectory))
-                    {
-                        FileSystemFacade.FileSystem.CreateDirectory(fileDirectory);
-                    }
-                    stream = FileSystemFacade.FileSystem.Open(file, FileMode.Create);
-
+                    stream = DatabaseCommon.CreateTile(path, OsmGeoType.Node, nodeTile, compressed);
                     subtiles[nodeTile.LocalId] = stream;
                 }
 

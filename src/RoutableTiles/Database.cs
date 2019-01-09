@@ -12,6 +12,7 @@ namespace RoutableTiles
     public class Database
     {
         private readonly string _path;
+        private readonly bool _compressed = false;
         private readonly uint _zoom;
         private const uint ZoomOffset = 2;
 
@@ -21,11 +22,12 @@ namespace RoutableTiles
         /// <summary>
         /// Creates a new data based on the given folder.
         /// </summary>
-        public Database(string folder, uint zoom = 14)
+        public Database(string folder, uint zoom = 12, bool compressed = true)
         {
             // TODO: verify that zoom offset leads to zoom zero from the given zoom level here.
             // in other words, zoom level has to be exactly dividable by ZoomOffset.
             _path = folder;
+            _compressed = compressed;
             _zoom = zoom;
 
             _nodeIndexesCache = new Dictionary<uint, Dictionary<ulong, Index>>();
@@ -48,13 +50,12 @@ namespace RoutableTiles
 
                 if (subTile.Zoom == _zoom)
                 { // load data and find node.
-                    var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, subTile);
+                    var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, subTile, _compressed);
                     if (stream == null)
                     {
                         return null;
                     }
                     using (stream)
-                        // using (var uncompressed = new LZ4.LZ4Stream(stream, LZ4.LZ4StreamMode.Decompress))
                     {
                         var source = new OsmSharp.Streams.BinaryOsmStreamSource(stream);
                         while (source.MoveNext(false, true, true))
@@ -136,6 +137,8 @@ namespace RoutableTiles
             {
                 yield break;
             }
+            var mask = "*.nodes.osm.bin";
+            if (_compressed) mask = mask + ".zip";
             foreach(var xDir in FileSystemFacade.FileSystem.EnumerateDirectories(
                 basePath))
             {
@@ -146,7 +149,7 @@ namespace RoutableTiles
                     continue;
                 }
 
-                foreach (var tile in FileSystemFacade.FileSystem.EnumerateFiles(xDir, "*.nodes.osm.bin"))
+                foreach (var tile in FileSystemFacade.FileSystem.EnumerateFiles(xDir, mask))
                 {
                     var tileName = FileSystemFacade.FileSystem.FileName(tile);
 
@@ -170,7 +173,7 @@ namespace RoutableTiles
             if (tile.Zoom != _zoom) { throw new ArgumentException("Tile not a the db zoom level."); }
 
             var nodes = new Dictionary<long, Node>();
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, tile))
+            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, tile, _compressed))
             {
                 var source = new OsmSharp.Streams.BinaryOsmStreamSource(stream);
                 while (source.MoveNext(false, true, true))
@@ -186,7 +189,7 @@ namespace RoutableTiles
             }
 
             var sortedIds = new SortedDictionary<long, Node>();
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile))
+            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
             {
                 if (stream != null)
                 {
@@ -244,7 +247,7 @@ namespace RoutableTiles
                 target.AddNode(node);
             }
 
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile))
+            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
             {
                 if (stream != null)
                 {
@@ -271,7 +274,7 @@ namespace RoutableTiles
                 }
             }
 
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Relation, tile))
+            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Relation, tile, _compressed))
             {
                 if (stream != null)
                 {
