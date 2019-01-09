@@ -3,11 +3,11 @@ using System.IO.Compression;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Streams.Filters;
-using RoutableTiles.Build.Indexes;
-using RoutableTiles.IO;
-using RoutableTiles.Tiles;
+using RouteableTiles.Build.Indexes;
+using RouteableTiles.IO;
+using RouteableTiles.Tiles;
 
-namespace RoutableTiles
+namespace RouteableTiles
 {
     internal static class DatabaseCommon
     {

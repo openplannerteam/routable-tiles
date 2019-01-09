@@ -25,4 +25,4 @@ VOLUME ["/var/app/logs"]
 
 # Set the default command to execute when creating a new container
 WORKDIR /var/app/
-CMD ["dotnet", "RoutableTiles.CLI.dll", "/var/app/source/input.osm.pbf", "/var/app/db/", "14", "/var/app/tiles/"]
+CMD ["dotnet", "RouteableTiles.CLI.dll", "/var/app/source/input.osm.pbf", "/var/app/db/", "14", "/var/app/tiles/"]

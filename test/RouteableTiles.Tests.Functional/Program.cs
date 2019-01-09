@@ -1,4 +1,4 @@
-namespace RoutableTiles.Tests.Functional
+namespace RouteableTiles.Tests.Functional
 {
     class Program
     {

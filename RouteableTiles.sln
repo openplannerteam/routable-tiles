@@ -7,9 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F0CE8D3A-F3C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{24913A72-D928-433A-B2CB-C179F5C31017}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutableTiles.Tests", "test\RoutableTiles.Tests\RoutableTiles.Tests.csproj", "{A1C3570A-E93B-4E29-A5AB-4E32CD14C4FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles.Tests", "test\RouteableTiles.Tests\RouteableTiles.Tests.csproj", "{A1C3570A-E93B-4E29-A5AB-4E32CD14C4FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutableTiles.Tests.Functional", "test\RoutableTiles.Tests.Functional\RoutableTiles.Tests.Functional.csproj", "{DA1428B4-2CBA-4119-B781-038DFECE633B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles.Tests.Functional", "test\RouteableTiles.Tests.Functional\RouteableTiles.Tests.Functional.csproj", "{DA1428B4-2CBA-4119-B781-038DFECE633B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F1DB8C17-64C9-45EF-A9A9-FA11A0EDCDB4}"
 EndProject
@@ -19,11 +19,11 @@ ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutableTiles", "src\RoutableTiles\RoutableTiles.csproj", "{DF2172B0-3F84-4FED-BBF0-63B7E174B348}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles", "src\RouteableTiles\RouteableTiles.csproj", "{DF2172B0-3F84-4FED-BBF0-63B7E174B348}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutableTiles.CLI", "src\RoutableTiles.CLI\RoutableTiles.CLI.csproj", "{38FAB08A-6E8E-4ABD-9223-21C78E0DCCCF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles.CLI", "src\RouteableTiles.CLI\RouteableTiles.CLI.csproj", "{38FAB08A-6E8E-4ABD-9223-21C78E0DCCCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutableTiles.IO.JsonLD", "src\RoutableTiles.IO.JsonLD\RoutableTiles.IO.JsonLD.csproj", "{570C6AF0-C976-44A5-987F-68FF347BC091}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles.IO.JsonLD", "src\RouteableTiles.IO.JsonLD\RouteableTiles.IO.JsonLD.csproj", "{570C6AF0-C976-44A5-987F-68FF347BC091}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

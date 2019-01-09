@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using OsmSharp;
 using OsmSharp.Streams;
-using RoutableTiles.Build.Indexes;
+using RouteableTiles.Build.Indexes;
 using Serilog;
-using RoutableTiles.IO;
-using RoutableTiles.Tiles;
+using RouteableTiles.IO;
+using RouteableTiles.Tiles;
 
-namespace RoutableTiles.Build
+namespace RouteableTiles.Build
 {
 
     /// <summary>

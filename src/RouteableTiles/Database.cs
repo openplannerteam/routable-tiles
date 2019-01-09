@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using OsmSharp;
 using OsmSharp.Streams;
-using RoutableTiles.Build.Indexes;
-using RoutableTiles.IO;
-using RoutableTiles.Tiles;
+using RouteableTiles.Build.Indexes;
+using RouteableTiles.IO;
+using RouteableTiles.Tiles;
 
-namespace RoutableTiles
+namespace RouteableTiles
 {
     public class Database
     {

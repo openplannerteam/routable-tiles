@@ -3,7 +3,7 @@ using System.IO;
 using RouteableTiles.IO.JsonLD;
 using Serilog;
 
-namespace RoutableTiles.CLI
+namespace RouteableTiles.CLI
 {
     class Program
     {
