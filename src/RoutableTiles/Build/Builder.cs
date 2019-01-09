@@ -29,25 +29,25 @@ namespace RoutableTiles.Build
             {
                 var newTiles = new List<Tile>();
 
-                // System.Threading.Tasks.Parallel.ForEach(tiles, (subTile) =>
-                // {
-                //     var subTiles = Build(path, maxZoom, subTile);
-
-                //     lock (newTiles)
-                //     {
-                //         newTiles.AddRange(subTiles);
-                //     }
-                // });
-
-                foreach (var subTile in tiles)
+                System.Threading.Tasks.Parallel.ForEach(tiles, (subTile) =>
                 {
-                   var subTiles = Build(path, maxZoom, subTile);
+                    var subTiles = Build(path, maxZoom, subTile);
 
-                   lock (newTiles)
-                   {
-                       newTiles.AddRange(subTiles);
-                   }
-                }
+                    lock (newTiles)
+                    {
+                        newTiles.AddRange(subTiles);
+                    }
+                });
+
+//                foreach (var subTile in tiles)
+//                {
+//                   var subTiles = Build(path, maxZoom, subTile);
+//
+//                   lock (newTiles)
+//                   {
+//                       newTiles.AddRange(subTiles);
+//                   }
+//                }
 
                 if (newTiles.Count == 0)
                 {
@@ -76,13 +76,18 @@ namespace RoutableTiles.Build
 //            var relationIndex = RelationProcessor.Process(source, path, maxZoom, tile, nodeIndex, wayIndex);
 
             // write the indices to disk.
-            nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx"));
-            wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                tile.X.ToString(), tile.Y.ToString() + ".ways.idx"));
-//            relationIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+            var actions = new List<Action>
+            {
+                () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
+                () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx"))
+            };
+            
+            //            relationIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
 //                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
-
+            System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
+            
             return nonEmptyTiles;
         }
         
@@ -146,12 +151,17 @@ namespace RoutableTiles.Build
 //            }
 
             // write the indexes to disk.
-            nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx"));
-            wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                tile.X.ToString(), tile.Y.ToString() + ".ways.idx"));
-//            relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-//                tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
+            var actions = new List<Action>
+            {
+                () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
+                () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx"))
+            };
+            
+            //            relationIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
+            System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
 
             if (FileSystemFacade.FileSystem.Exists(nodeFile))
             {

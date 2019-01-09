@@ -9,7 +9,7 @@ namespace RoutableTiles.CLI
     {
         static void Main(string[] args)
         {
-#if DEBUG
+//#if DEBUG
             if (args == null || args.Length == 0)
             {
                 args = new string[]
@@ -20,7 +20,7 @@ namespace RoutableTiles.CLI
                     @"/home/xivk/work/openplannerteam/data/routabletiles/",
                 };
             }
-#endif
+//#endif
             
             // enable logging.
             OsmSharp.Logging.Logger.LogAction = (origin, level, message, parameters) =>
@@ -103,33 +103,33 @@ namespace RoutableTiles.CLI
                     Log.Information("The tiled DB already exists, reusing...");
                 }
                 
-                // create a database object that can read individual objects.
-                Console.WriteLine("Loading database...");
-                var db = new Database(args[1]);
-                
-                foreach (var baseTile in db.GetTiles())
-                {
-                    Log.Information($"Base tile found: {baseTile}");
-
-                    var file = Path.Combine(args[3], baseTile.Zoom.ToString(), baseTile.X.ToString(),
-                        baseTile.Y.ToString(), "index.json");
-                    var fileInfo = new FileInfo(file);
-                    if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
-                    {
-                        fileInfo.Directory.Create();
-                    }
-
-                    using (var stream = File.Open(file, FileMode.Create))
-                    {
-                        var target = new TileOsmStreamTarget(stream);
-                        target.Initialize();
-
-                        db.GetRoutableTile(baseTile, target);
-
-                        target.Flush();
-                        target.Close();
-                    }
-                }
+//                // create a database object that can read individual objects.
+//                Console.WriteLine("Loading database...");
+//                var db = new Database(args[1]);
+//                
+//                foreach (var baseTile in db.GetTiles())
+//                {
+//                    Log.Information($"Base tile found: {baseTile}");
+//
+//                    var file = Path.Combine(args[3], baseTile.Zoom.ToString(), baseTile.X.ToString(),
+//                        baseTile.Y.ToString(), "index.json");
+//                    var fileInfo = new FileInfo(file);
+//                    if (fileInfo.Directory != null && !fileInfo.Directory.Exists)
+//                    {
+//                        fileInfo.Directory.Create();
+//                    }
+//
+//                    using (var stream = File.Open(file, FileMode.Create))
+//                    {
+//                        var target = new TileOsmStreamTarget(stream);
+//                        target.Initialize();
+//
+//                        db.GetRoutableTile(baseTile, target);
+//
+//                        target.Flush();
+//                        target.Close();
+//                    }
+//                }
             }
             catch (Exception e)
             {
