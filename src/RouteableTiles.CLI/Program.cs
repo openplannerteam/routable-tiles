@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using RouteableTiles.IO.JsonLD;
 using Serilog;
 
@@ -103,9 +104,10 @@ namespace RouteableTiles.CLI
                 }
                 
                 // create a database object that can read individual objects.
-                Console.WriteLine("Loading database...");
+                Log.Information($"Loading database: {args[1]}");
                 var db = new Database(args[1], zoom: zoom, compressed: compressed);
-                
+
+                //Parallel.ForEach(db.GetTiles(), (baseTile) =>
                 foreach (var baseTile in db.GetTiles())
                 {
                     Log.Information($"Base tile found: {baseTile}");

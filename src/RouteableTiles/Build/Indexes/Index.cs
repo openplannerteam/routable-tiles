@@ -10,9 +10,10 @@ namespace RouteableTiles.Build.Indexes
     /// <summary>
     /// Represents an index matching id's to one or more subtiles.
     /// </summary>
-    internal class Index
+    internal class Index : IDisposable
     {
         private readonly ArrayBase<ulong> _data;
+        private readonly bool _mapped = false;
         private const int Subtiles = 16;
         
         /// <summary>
@@ -29,6 +30,7 @@ namespace RouteableTiles.Build.Indexes
         {
             _data = data;
             _pointer = _data.Length;
+            _mapped = (data is Array<ulong>);
 
             this.IsDirty = false;
         }
@@ -85,7 +87,11 @@ namespace RouteableTiles.Build.Indexes
         /// </summary>
         public bool TryGetMask(long id, out int mask)
         {
-            return Search(id, out mask) != -1;
+            if (!_mapped) return Search(id, out mask) != -1;
+            lock (this)
+            {
+                return Search(id, out mask) != -1;
+            }
         }
 
         /// <summary>
@@ -183,13 +189,14 @@ namespace RouteableTiles.Build.Indexes
         {
             var min = 0L;
             var max = _pointer - 1;
-            
+
             long minId;
             Decode(_data[min], out minId, out mask);
             if (minId == id)
             {
                 return min;
             }
+
             long maxId;
             Decode(_data[max], out maxId, out mask);
             if (maxId == id)
@@ -221,6 +228,11 @@ namespace RouteableTiles.Build.Indexes
                     return -1;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            _data?.Dispose();
         }
     }
 }

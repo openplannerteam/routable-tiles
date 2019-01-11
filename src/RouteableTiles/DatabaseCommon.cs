@@ -3,6 +3,7 @@ using System.IO.Compression;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Streams.Filters;
+using Reminiscence.Arrays;
 using RouteableTiles.Build.Indexes;
 using RouteableTiles.IO;
 using RouteableTiles.Tiles;
@@ -94,7 +95,7 @@ namespace RouteableTiles
         /// <summary>
         /// Loads an index for the given tile from disk (if any).
         /// </summary>
-        public static Index LoadIndex(string path, Tile tile, OsmGeoType type)
+        public static Index LoadIndex(string path, Tile tile, OsmGeoType type, bool mapped = false)
         {
             var extension = ".nodes.idx";
             if (type == OsmGeoType.Way)
@@ -111,6 +112,12 @@ namespace RouteableTiles
             if (!FileSystemFacade.FileSystem.Exists(location))
             {
                 return null;
+            }
+
+            if (mapped)
+            {
+                var stream = FileSystemFacade.FileSystem.OpenRead(location);
+                return Index.Deserialize(stream, ArrayProfile.NoCache);
             }
             using (var stream = FileSystemFacade.FileSystem.OpenRead(location))
             {

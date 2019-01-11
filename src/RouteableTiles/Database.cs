@@ -1,23 +1,27 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using OsmSharp;
 using OsmSharp.Streams;
 using RouteableTiles.Build.Indexes;
+using RouteableTiles.Collections;
 using RouteableTiles.IO;
 using RouteableTiles.Tiles;
+using Serilog;
 
 namespace RouteableTiles
 {
     public class Database
     {
         private readonly string _path;
-        private readonly bool _compressed = false;
+        private readonly bool _compressed;
         private readonly uint _zoom;
         private const uint ZoomOffset = 2;
+        private const bool _mapped = true;
 
-        private readonly Dictionary<uint, Dictionary<ulong, Index>> _nodeIndexesCache;
-        private readonly Dictionary<uint, Dictionary<ulong, Index>> _wayIndexesCache;
+        private readonly ConcurrentDictionary<uint, LRUCache<ulong, Index>> _nodeIndexesCache;
+        private readonly ConcurrentDictionary<uint, LRUCache<ulong, Index>> _wayIndexesCache;
 
         /// <summary>
         /// Creates a new data based on the given folder.
@@ -30,8 +34,8 @@ namespace RouteableTiles
             _compressed = compressed;
             _zoom = zoom;
 
-            _nodeIndexesCache = new Dictionary<uint, Dictionary<ulong, Index>>();
-            _wayIndexesCache = new Dictionary<uint, Dictionary<ulong, Index>>();
+            _nodeIndexesCache = new ConcurrentDictionary<uint, LRUCache<ulong, Index>>();
+            _wayIndexesCache = new ConcurrentDictionary<uint, LRUCache<ulong, Index>>();
         }
         
         /// <summary>
@@ -53,6 +57,7 @@ namespace RouteableTiles
                     var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, subTile, _compressed);
                     if (stream == null)
                     {
+                        Log.Warning($"Could not find subtile, it should be there: {subTile}");
                         return null;
                     }
                     using (stream)
@@ -86,7 +91,7 @@ namespace RouteableTiles
             {
                 if (!_nodeIndexesCache.TryGetValue(tile.Zoom, out var cached))
                 {
-                    cached = new Dictionary<ulong, Index>();
+                    cached = new LRUCache<ulong, Index>(10);
                     _nodeIndexesCache[tile.Zoom] = cached;
                 }
 
@@ -95,19 +100,19 @@ namespace RouteableTiles
                     return index;
                 }
 
-                index = DatabaseCommon.LoadIndex(_path, tile, type);
+                index = DatabaseCommon.LoadIndex(_path, tile, type, _mapped);
                 if (create && index == null)
                 {
                     index = new Index();
                 }
-                cached[tile.LocalId] = index;
+                cached.Add(tile.LocalId, index);
                 return index;
             }
             else
             {
                 if (!_wayIndexesCache.TryGetValue(tile.Zoom, out var cached))
                 {
-                    cached = new Dictionary<ulong, Index>();
+                    cached = new LRUCache<ulong, Index>(10);
                     _wayIndexesCache[tile.Zoom] = cached;
                 }
 
@@ -116,12 +121,12 @@ namespace RouteableTiles
                     return index;
                 }
 
-                index = DatabaseCommon.LoadIndex(_path, tile, type);
+                index = DatabaseCommon.LoadIndex(_path, tile, type, _mapped);
                 if (create && index == null)
                 {
                     index = new Index();
                 }
-                cached[tile.LocalId] = index;
+                cached.Add(tile.LocalId, index);
                 return index;
             }
         }
@@ -143,8 +148,7 @@ namespace RouteableTiles
                 basePath))
             {
                 var xDirName = FileSystemFacade.FileSystem.DirectoryName(xDir);
-                uint x;
-                if (!uint.TryParse(xDirName, out x))
+                if (!uint.TryParse(xDirName, out var x))
                 {
                     continue;
                 }
@@ -153,9 +157,8 @@ namespace RouteableTiles
                 {
                     var tileName = FileSystemFacade.FileSystem.FileName(tile);
 
-                    uint y;
                     if (!uint.TryParse(tileName.Substring(0,
-                        tileName.IndexOf('.')), out y))
+                        tileName.IndexOf('.')), out var y))
                     {
                         continue;
                     }
@@ -218,6 +221,7 @@ namespace RouteableTiles
                                     if (!sortedIds.TryGetValue(nodeId, out node))
                                     {
                                         node = this.GetNode(nodeId);
+                                        if (node == null) Log.Warning($"Node {nodeId} not found!");
                                         sortedIds[nodeId] = node;
                                     }
                                 }
@@ -231,6 +235,7 @@ namespace RouteableTiles
                                     if (!sortedIds.TryGetValue(nodeId, out node))
                                     {
                                         node = this.GetNode(nodeId);
+                                        if (node == null) Log.Warning($"Node {nodeId} not found!");
                                         sortedIds[nodeId] = node;
                                     }
                                 }
@@ -244,6 +249,7 @@ namespace RouteableTiles
             var hasData = sortedIds.Count > 0;
             foreach (var node in sortedIds.Values)
             {
+                if (node == null) continue;
                 target.AddNode(node);
             }
 
