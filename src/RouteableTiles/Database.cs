@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using OsmSharp;
 using OsmSharp.Streams;
@@ -37,6 +38,11 @@ namespace RouteableTiles
             _nodeIndexesCache = new ConcurrentDictionary<uint, LRUCache<ulong, Index>>();
             _wayIndexesCache = new ConcurrentDictionary<uint, LRUCache<ulong, Index>>();
         }
+
+        /// <summary>
+        /// Gets the zoom.
+        /// </summary>
+        public uint Zoom => _zoom;
         
         /// <summary>
         /// Gets the node with given id.
@@ -167,17 +173,34 @@ namespace RouteableTiles
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the a routeable tile for the given tile.
+        /// </summary>
+        /// <param name="tile">The tile.</param>
+        /// <returns>An enumerable with all data that should be in a routeable tile.</returns>
+        public IEnumerable<OsmGeo> GetRouteableTile(Tile tile)
+        {
+            if (tile.Zoom != _zoom) { return null; }
+
+            var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, tile, _compressed);
+            if (stream == null) return null;
+
+            return this.GetRouteableTile(tile, stream);
+        }
         
         /// <summary>
         /// Gets a complete tile with complete ways and complete first level relations.
         /// </summary>
-        public bool GetRoutableTile(Tile tile, OsmStreamTarget target)
+        internal IEnumerable<OsmGeo> GetRouteableTile(Tile tile, Stream stream)
         {
-            if (tile.Zoom != _zoom) { throw new ArgumentException("Tile not a the db zoom level."); }
-
             var nodes = new Dictionary<long, Node>();
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Node, tile, _compressed))
+            using (stream)
             {
+                if (stream == null)
+                {
+                    yield break;
+                }
                 var source = new OsmSharp.Streams.BinaryOsmStreamSource(stream);
                 while (source.MoveNext(false, true, true))
                 {
@@ -192,7 +215,7 @@ namespace RouteableTiles
             }
 
             var sortedIds = new SortedDictionary<long, Node>();
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
+            using (stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
             {
                 if (stream != null)
                 {
@@ -247,13 +270,16 @@ namespace RouteableTiles
             }
 
             var hasData = sortedIds.Count > 0;
+            if (!hasData)
+            {
+                yield break;
+            }
             foreach (var node in sortedIds.Values)
             {
-                if (node == null) continue;
-                target.AddNode(node);
+                yield return node;
             }
 
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
+            using (stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
             {
                 if (stream != null)
                 {
@@ -275,12 +301,12 @@ namespace RouteableTiles
                         }
                         w.Nodes = trimmedNodes.ToArray();
 
-                        target.AddWay(w);
+                        yield return w;
                     }
                 }
             }
 
-            using (var stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Relation, tile, _compressed))
+            using (stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Relation, tile, _compressed))
             {
                 if (stream != null)
                 {
@@ -291,12 +317,10 @@ namespace RouteableTiles
 
                         var r = current as Relation;
 
-                        target.AddRelation(r);
+                        yield return r;
                     }
                 }
             }
-
-            return hasData;
         }
     }
 }

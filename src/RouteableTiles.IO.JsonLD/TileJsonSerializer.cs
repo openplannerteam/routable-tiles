@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using OsmSharp;
 
@@ -6,8 +8,44 @@ using OsmSharp;
 [assembly: InternalsVisibleTo("RouteableTiles.Tests.Functional")]
 namespace RouteableTiles.IO.JsonLD
 {
-    internal static class JsonSerializer
+    public static class JsonSerializer
     {
+        /// <summary>
+        /// Writes the given enumerable of osm geo objects to the given text writer in JSON-LD routeable tiles format.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <param name="writer">The writer.</param>
+        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer)
+        {
+            var jsonWriter = new JsonWriter(writer);
+            jsonWriter.WriteOpen();
+            
+            jsonWriter.WriteContext();
+            
+            jsonWriter.WritePropertyName("@graph");
+            jsonWriter.WriteArrayOpen();
+
+            foreach (var osmGeo in data)
+            {
+                switch (osmGeo)
+                {
+                    case Node node:
+                        jsonWriter.WriteNode(node);
+                        break;
+                    case Way way:
+                        jsonWriter.WriteWay(way);
+                        break;
+                    case Relation _:
+                        //_jsonWriter.WriteRelation()
+                        break;
+                }
+            }
+            
+            jsonWriter.WriteArrayClose();
+            jsonWriter.WriteClose();
+            jsonWriter.Flush();
+        }
+        
         internal static void WriteContext(this JsonWriter writer)
         {
             writer.WritePropertyName("@context");
