@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using OsmSharp;
+using OsmSharp.Tags;
 
 [assembly: InternalsVisibleTo("RouteableTiles.Tests")]
 [assembly: InternalsVisibleTo("RouteableTiles.Tests.Functional")]
@@ -10,6 +11,48 @@ namespace RouteableTiles.IO.JsonLD
 {
     public static class JsonSerializer
     {
+        /// <summary>
+        /// Contains all supported vehicle types, see:
+        ///
+        /// https://wiki.openstreetmap.org/wiki/Key:access
+        /// </summary>
+        private static HashSet<string> VehicleTypes = new HashSet<string>(new[]
+        {
+            "access",
+            "bicycle",
+            "foot",
+            "ski",
+            "horse",
+            "vehicle",
+            "carriage",
+            "trailer",
+            "caravan",
+            "motor_vehicle",
+            "motorcycle",
+            "moped",
+            "mofa",
+            "motorocar",
+            "motorhome",
+            "tourist_bus",
+            "coach",
+            "goods",
+            "hgv",
+            "hgv_articulated",
+            "agricultural",
+            "atv",
+            "snowmobile",
+            "psv",
+            "bus",
+            "minibus",
+            "share_taxi",
+            "taxi",
+            "hov",
+            "car_sharing",
+            "emergency",
+            "hazmat",
+            "disabled"
+        });
+        
         /// <summary>
         /// Writes the given enumerable of osm geo objects to the given text writer in JSON-LD routeable tiles format.
         /// </summary>
@@ -105,21 +148,40 @@ namespace RouteableTiles.IO.JsonLD
             
             writer.WriteClose();
         }
-        
+
         internal static void WriteNode(this JsonWriter writer, Node node)
         {
-            if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
-            if (node == null) { throw new ArgumentNullException(nameof(node)); }
-            
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             writer.WriteOpen();
-            
+
             writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
             writer.WriteProperty("geo:long", node.Longitude.ToInvariantString());
             writer.WriteProperty("geo:lat", node.Latitude.ToInvariantString());
             
+            if (node.Tags != null)
+            {
+                if (node.Tags.TryGetValue("barrier", out var barrier))
+                {
+                    writer.WriteProperty("osm:barrier", "osm:" + barrier, true, true);
+                    foreach (var tag in node.Tags)
+                    {
+                        writer.WriteAccessTag(tag);
+                    }
+                }
+            }
+
             writer.WriteClose();
         }
-        
+
         internal static void WriteWay(this JsonWriter writer, Way way)
         {
             if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
@@ -134,6 +196,8 @@ namespace RouteableTiles.IO.JsonLD
             {
                 foreach (var tag in way.Tags)
                 {
+                    if (writer.WriteAccessTag(tag)) continue;
+                    
                     switch (tag.Key)
                     {
                         case "name":
@@ -162,6 +226,17 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteArrayClose();
             
             writer.WriteClose();
+        }
+
+        internal static bool WriteAccessTag(this JsonWriter writer, Tag tag)
+        {
+            if (VehicleTypes.Contains(tag.Key))
+            {
+                writer.WriteProperty("osm:" + tag.Key, "osm:" + tag.Value, true, true);
+                return true;
+            }
+
+            return false;
         }
     }
 }
