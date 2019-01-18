@@ -13,7 +13,7 @@ echo "Running:" $RUNNING
 
 if [ "$RUNNING" != "$LATEST" ];then
   echo "upgrading $NAME"
-  docker-restart.sh $NAME $PORT $IMAGE
+  ./docker-restart.sh $NAME $PORT $IMAGE
 else
   echo "$NAME up to date."
 fi
