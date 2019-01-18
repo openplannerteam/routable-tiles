@@ -28,7 +28,7 @@ namespace RouteableTiles.API
             
             try
             {
-                Log.Information("Starting web host");
+                Log.Information("Starting web host...");
                 CreateWebHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
