@@ -28,6 +28,12 @@ namespace RouteableTiles.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOrigins",
+                    builder => builder.AllowAnyOrigin());
+            });
+            
             services.AddMvc(options =>
                 {
                     options.OutputFormatters.Insert(0, new JsonLDOutputFormatter());
@@ -43,6 +49,8 @@ namespace RouteableTiles.API
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            app.UseCors("AllowAllOrigins");
             
             var options = new ForwardedHeadersOptions
             {
