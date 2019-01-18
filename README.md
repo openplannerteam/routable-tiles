@@ -12,3 +12,8 @@ Or the Benelux:
 
 ![Image of tiles for ghent](benelux.png)
 
+## Deployment
+
+This is via docker, start the container like this, with `/path/to/db` the path to the database create by the CLI project:
+
+`docker run -d -v /path/to/db:/var/app/db/ -v /path/to/logs/:/var/app/logs/ -p 5000:5000 --name routeable-tiles-api openplannerteam/routeable-tiles-api`
