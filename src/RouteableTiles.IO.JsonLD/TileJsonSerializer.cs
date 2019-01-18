@@ -126,7 +126,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WritePropertyName("hydra:search");
             writer.WriteOpen();
             writer.WriteProperty("@type", "hydra:IriTemplate", true);
-            writer.WriteProperty("hydra:template", "https://tiles.openplanner.team/planet/{x}/{y}/14", true);
+            writer.WriteProperty("hydra:template", "https://tiles.openplanner.team/planet/14/{x}/{y}", true);
             writer.WriteProperty("hydra:variableRepresentation", "hydra:BasicRepresentation", true);
             
             writer.WritePropertyName("hydra:mapping");
