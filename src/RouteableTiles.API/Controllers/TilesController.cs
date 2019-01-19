@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using OsmSharp;
 using RouteableTiles.IO.JsonLD;
 using RouteableTiles.Tiles;
@@ -26,6 +27,8 @@ namespace RouteableTiles.API.Controllers
             var tile = new Tile(x, y, z);
             var data = db.GetRouteableTile(tile);
             if (data == null) return NotFound();
+            
+            Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;
             
             return data;
         }
