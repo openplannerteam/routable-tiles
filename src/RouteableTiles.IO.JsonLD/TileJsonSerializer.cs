@@ -112,7 +112,11 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteOpen();
             writer.WriteProperty("@type", "@id", true);
             writer.WriteClose();
-            
+            writer.WritePropertyName("osm:nodes");
+            writer.WriteOpen();
+            writer.WriteProperty("@container", "@list", true);
+            writer.WriteProperty("@type", "@id", true);
+            writer.WriteClose();
             writer.WriteClose();
             
             writer.WritePropertyName("dcterms:isPartOf");
