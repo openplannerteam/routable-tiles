@@ -45,7 +45,7 @@ namespace RouteableTiles.IO.JsonLD
 
         public override void AddRelation(Relation relation)
         {
-            // _jsonWriter.WriteRelation(relation);
+            _jsonWriter.WriteRelation(relation);
         }
 
         public override void Flush()

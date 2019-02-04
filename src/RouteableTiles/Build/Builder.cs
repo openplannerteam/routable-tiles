@@ -65,8 +65,8 @@ namespace RouteableTiles.Build
                 wayIndex = WayProcessor.Process(source, path, maxZoom, tile, nodeIndex, compressed);
             }
 
-//            // split relations using the node and way index and return the relation index.
-//            var relationIndex = RelationProcessor.Process(source, path, maxZoom, tile, nodeIndex, wayIndex);
+            // split relations using the node and way index and return the relation index.
+            var relationIndex = RelationProcessor.Process(source, path, maxZoom, tile, nodeIndex, wayIndex, compressed);
 
             // write the indices to disk.
             var actions = new List<Action>
@@ -74,11 +74,10 @@ namespace RouteableTiles.Build
                 () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
                     tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
                 () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx"))
+                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx")),
+                () => relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"))
             };
-            
-            //            relationIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-//                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
             System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
             
             return nonEmptyTiles;
@@ -124,21 +123,20 @@ namespace RouteableTiles.Build
                 }
             }  
 
-//            // build the relations index.
-//            Index relationIndex = null;
-//            var relationFile = FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-//                tile.X.ToString(), tile.Y.ToString() + ".relations.osm.bin");
-//            if (FileSystemFacade.FileSystem.Exists(relationFile))
-//            {
-//                using (var relationStream = FileSystemFacade.FileSystem.OpenRead(relationFile))
-//                {
-//                    var relationSource = new OsmSharp.Streams.BinaryOsmStreamSource(relationStream);
-//                    if (relationSource.MoveNext())
-//                    {
-//                        relationIndex = RelationProcessor.Process(relationSource, path, maxZoom, tile, nodeIndex, wayIndex);
-//                    }
-//                }
-//            }
+            // build the relations index.
+            Index relationIndex = null;
+            var relationFile = DatabaseCommon.BuildPathToTile(path, OsmGeoType.Relation, tile, compressed);
+            if (FileSystemFacade.FileSystem.Exists(relationFile))
+            {
+                using (var relationStream = DatabaseCommon.LoadTile(path, OsmGeoType.Relation, tile, compressed))
+                {
+                    var relationSource = new OsmSharp.Streams.BinaryOsmStreamSource(relationStream);
+                    if (relationSource.MoveNext())
+                    {
+                        relationIndex = RelationProcessor.Process(relationSource, path, maxZoom, tile, nodeIndex, wayIndex, compressed);
+                    }
+                }
+            }
 
             // write the indexes to disk.
             var actions = new List<Action>
@@ -146,11 +144,10 @@ namespace RouteableTiles.Build
                 () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
                     tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
                 () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx"))
+                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx")),
+                () => relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"))
             };
-            
-            //            relationIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-//                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
             System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
 
             if (FileSystemFacade.FileSystem.Exists(nodeFile))
@@ -161,10 +158,10 @@ namespace RouteableTiles.Build
             {
                 FileSystemFacade.FileSystem.Delete(wayFile);
             }
-//            if (FileSystemFacade.FileSystem.Exists(relationFile))
-//            {
-//                FileSystemFacade.FileSystem.Delete(relationFile);
-//            }
+            if (FileSystemFacade.FileSystem.Exists(relationFile))
+            {
+                FileSystemFacade.FileSystem.Delete(relationFile);
+            }
 
             return nonEmptyTiles;
         }

@@ -78,8 +78,8 @@ namespace RouteableTiles.IO.JsonLD
                     case Way way:
                         jsonWriter.WriteWay(way);
                         break;
-                    case Relation _:
-                        //_jsonWriter.WriteRelation()
+                    case Relation relation:
+                        jsonWriter.WriteRelation(relation);
                         break;
                 }
             }
@@ -173,12 +173,24 @@ namespace RouteableTiles.IO.JsonLD
             
             if (node.Tags != null)
             {
-                if (node.Tags.TryGetValue("barrier", out var barrier))
+                foreach (var tag in node.Tags)
                 {
-                    writer.WriteProperty("osm:barrier", "osm:" + barrier, true, true);
-                    foreach (var tag in node.Tags)
+                    if (writer.WriteAccessTag(tag)) continue;
+                    
+                    switch (tag.Key)
                     {
-                        writer.WriteAccessTag(tag);
+                        case "name":
+                            writer.WriteProperty("rdfs:label", tag.Value, true, true);
+                            break;
+                        case "highway":
+                            writer.WriteProperty("osm:highway", "osm:" + tag.Value, true, true);
+                            break;
+                        case "maxspeed":
+                            writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
+                            break;
+                        default:
+                            writer.WriteProperty($"osm:{tag.Key}", "osm:" + tag.Value, true, true);
+                            break;
                     }
                 }
             }
@@ -213,6 +225,9 @@ namespace RouteableTiles.IO.JsonLD
                         case "maxspeed":
                             writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
                             break;
+                        default:
+                            writer.WriteProperty($"osm:{tag.Key}", "osm:" + tag.Value, true, true);
+                            break;
                     }
                 }
             }
@@ -225,6 +240,75 @@ namespace RouteableTiles.IO.JsonLD
                 foreach (var node in way.Nodes)
                 {
                     writer.WriteArrayValue($"http://www.openstreetmap.org/node/{node}", true, false);
+                }
+            }
+            writer.WriteArrayClose();
+            
+            writer.WriteClose();
+        }
+
+        internal static void WriteRelation(this JsonWriter writer, Relation relation)
+        {
+            if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
+            if (relation == null) { throw new ArgumentNullException(nameof(relation)); }
+            
+            writer.WriteOpen();
+            
+            writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{relation.Id}", true, false);
+            writer.WriteProperty("@type", "osm:Way", true, true);
+
+            if (relation.Tags != null)
+            {
+                foreach (var tag in relation.Tags)
+                {
+                    if (writer.WriteAccessTag(tag)) continue;
+                    
+                    switch (tag.Key)
+                    {
+                        case "name":
+                            writer.WriteProperty("rdfs:label", tag.Value, true, true);
+                            break;
+                        case "highway":
+                            writer.WriteProperty("osm:highway", "osm:" + tag.Value, true, true);
+                            break;
+                        case "maxspeed":
+                            writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
+                            break;
+                        default:
+                            writer.WriteProperty($"osm:{tag.Key}", "osm:" + tag.Value, true, true);
+                            break;
+                    }
+                }
+            }
+            
+            writer.WritePropertyName("osm:members");
+            
+            writer.WriteArrayOpen();
+            if (relation.Members != null)
+            {
+                foreach (var member in relation.Members)
+                {
+                    writer.WriteOpen();
+
+                    switch (member.Type)
+                    {
+                        case OsmGeoType.Node:
+                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{member.Id}", true, false);
+                            break;
+                        case OsmGeoType.Way:
+                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{member.Id}", true, false);
+                            break;
+                        case OsmGeoType.Relation:
+                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{member.Id}", true, false);
+                            break;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(member.Role))
+                    {
+                        writer.WriteProperty("role", member.Role, true, false);
+                    }
+                    
+                    writer.WriteClose();
                 }
             }
             writer.WriteArrayClose();
