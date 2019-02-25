@@ -255,7 +255,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteOpen();
             
             writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{relation.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Way", true, true);
+            writer.WriteProperty("@type", "osm:Relation", true, true);
 
             if (relation.Tags != null)
             {
