@@ -121,15 +121,17 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteClose();
             writer.WriteClose();
             
+            writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/{tile.Zoom}/{tile.X}/{tile.Y}/", true);
+            writer.WriteProperty("tiles:zoom", $"{tile.Zoom}");
+            writer.WriteProperty("tiles:longitudeTile", $"{tile.X}");
+            writer.WriteProperty("tiles:latitudeTile", $"{tile.Y}");
+            
             writer.WritePropertyName("dcterms:isPartOf");
             writer.WriteOpen();
             
             // TODO: generate this URL based on the request info instead of hardcoding.
-            writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/{tile.Zoom}/{tile.X}/{tile.Y}/", true);
+            writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/", true);
             writer.WriteProperty("@type", "hydra:Collection", true);
-            writer.WriteProperty("tiles:zoom", $"{tile.Zoom}");
-            writer.WriteProperty("tiles:longitudeTile", $"{tile.X}");
-            writer.WriteProperty("tiles:latitudeTile", $"{tile.Y}");
             writer.WriteProperty("dcterms:license", "http://opendatacommons.org/licenses/odbl/1-0/", true);
             writer.WriteProperty("dcterms:rights", "http://www.openstreetmap.org/copyright", true);
             
