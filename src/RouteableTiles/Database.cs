@@ -194,7 +194,8 @@ namespace RouteableTiles
         /// </summary>
         internal IEnumerable<OsmGeo> GetRouteableTile(Tile tile, Stream stream)
         {
-            var nodes = new Dictionary<long, Node>();
+            // build a hashset of all nodes in the tile.
+            var nodesInTile = new Dictionary<long, Node>();
             using (stream)
             {
                 if (stream == null)
@@ -209,12 +210,13 @@ namespace RouteableTiles
                     if (!(current is Node n)) continue;
                     if (n.Id == null) continue;
                     
-                    var nodeId = n.Id.Value;
-                    nodes.Add(n.Id.Value, n);
+                    nodesInTile.Add(n.Id.Value, n);
                 }
             }
 
-            var sortedIds = new SortedDictionary<long, Node>();
+            // go over all ways and also include all nodes between the first/last node in the tile.
+            // also include one node before or after the first/last node in the tile.
+            var nodesToInclude = new SortedDictionary<long, Node>();
             using (stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
             {
                 if (stream != null)
@@ -230,55 +232,56 @@ namespace RouteableTiles
                             continue;
                         }
 
+                        var first = int.MaxValue;
+                        var last = -1;
                         for (var n = 0; n < w.Nodes.Length; n++)
                         {
                             var nodeId = w.Nodes[n];
-                            if (!nodes.TryGetValue(nodeId, out var node)) continue;
-                            sortedIds[nodeId] = node;
+                            if (!nodesInTile.ContainsKey(nodeId)) continue;
+
+                            if (n < first) first = n;
+                            if (n > last) last = n;
+                        }
+
+                        if (first == int.MaxValue) continue;
+
+                        if (first > 0) first--;
+                        if (last < w.Nodes.Length - 1) last++;
+                        for (var n = first; n < last; n++)
+                        {
+                            var nodeId = w.Nodes[n];
                             
-                            if (n > 0)
-                            {
-                                nodeId = w.Nodes[n - 1];
-                                if (!nodes.TryGetValue(nodeId, out node))
-                                {
-                                    if (!sortedIds.TryGetValue(nodeId, out node))
-                                    {
-                                        node = this.GetNode(nodeId);
-                                        if (node == null) Log.Warning($"Node {nodeId} not found!");
-                                        sortedIds[nodeId] = node;
-                                    }
-                                }
-                                sortedIds[nodeId] = node;
+                            // get node from the nodes in the tile.
+                            if (nodesInTile.TryGetValue(nodeId, out var node))
+                            { // node already there.
+                                nodesToInclude[nodeId] = node;
+                                continue;
                             }
-                            if (n < w.Nodes.Length - 1)
-                            {
-                                nodeId = w.Nodes[n + 1];
-                                if (!nodes.TryGetValue(nodeId, out node))
-                                {
-                                    if (!sortedIds.TryGetValue(nodeId, out node))
-                                    {
-                                        node = this.GetNode(nodeId);
-                                        if (node == null) Log.Warning($"Node {nodeId} not found!");
-                                        sortedIds[nodeId] = node;
-                                    }
-                                }
-                                sortedIds[nodeId] = node;
+                            
+                            // node is not in the tile, get it from the db if it's not included already..
+                            if (!nodesToInclude.ContainsKey(nodeId))
+                            { // not not yet there, get it.
+                                node = this.GetNode(nodeId);
+                                nodesToInclude[nodeId] = node;
                             }
                         }
                     }
                 }
             }
 
-            var hasData = sortedIds.Count > 0;
+            var hasData = nodesToInclude.Count > 0;
             if (!hasData)
             {
                 yield break;
             }
-            foreach (var node in sortedIds.Values)
+            
+            // return all the nodes.
+            foreach (var node in nodesToInclude.Values)
             {
                 yield return node;
             }
 
+            // returns all the ways that have at least one node.
             using (stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Way, tile, _compressed))
             {
                 if (stream != null)
@@ -295,17 +298,20 @@ namespace RouteableTiles
                         var trimmedNodes = new List<long>();
                         foreach (var n in w.Nodes)
                         {
-                            if (!sortedIds.TryGetValue(n, out _)) continue;
+                            if (!nodesToInclude.TryGetValue(n, out _)) continue;
                             
                             trimmedNodes.Add(n);
                         }
                         w.Nodes = trimmedNodes.ToArray();
+                        
+                        if (w.Nodes.Length == 0) continue;
 
                         yield return w;
                     }
                 }
             }
 
+            // return all relations.
             using (stream = DatabaseCommon.LoadTile(_path, OsmGeoType.Relation, tile, _compressed))
             {
                 if (stream != null)
