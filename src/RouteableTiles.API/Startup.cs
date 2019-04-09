@@ -30,8 +30,8 @@ namespace RouteableTiles.API
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAllOrigins",
-                    builder => builder.AllowAnyOrigin());
+                options.AddPolicy("AllowAll",
+                    builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             });
             
             services.AddMvc(options =>
@@ -50,7 +50,7 @@ namespace RouteableTiles.API
                 app.UseDeveloperExceptionPage();
             }
             
-            app.UseCors("AllowAllOrigins");
+            app.UseCors("AllowAll");
             
             var options = new ForwardedHeadersOptions
             {
