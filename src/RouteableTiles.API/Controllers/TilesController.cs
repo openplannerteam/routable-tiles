@@ -30,7 +30,11 @@ namespace RouteableTiles.API.Controllers
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;
             
-            return data;
+            return new TileResponse()
+            {
+                Data = data,
+                Tile = tile
+            };
         }
     }
 }

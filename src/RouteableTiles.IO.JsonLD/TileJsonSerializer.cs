@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using OsmSharp;
 using OsmSharp.Tags;
+using RouteableTiles.Tiles;
 
 [assembly: InternalsVisibleTo("RouteableTiles.Tests")]
 [assembly: InternalsVisibleTo("RouteableTiles.Tests.Functional")]
@@ -57,13 +58,14 @@ namespace RouteableTiles.IO.JsonLD
         /// Writes the given enumerable of osm geo objects to the given text writer in JSON-LD routeable tiles format.
         /// </summary>
         /// <param name="data">The data.</param>
+        /// <param name="tile">The tile.</param>
         /// <param name="writer">The writer.</param>
-        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer)
+        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile)
         {
             var jsonWriter = new JsonWriter(writer);
             jsonWriter.WriteOpen();
             
-            jsonWriter.WriteContext();
+            jsonWriter.WriteContext(tile);
             
             jsonWriter.WritePropertyName("@graph");
             jsonWriter.WriteArrayOpen();
@@ -89,7 +91,7 @@ namespace RouteableTiles.IO.JsonLD
             jsonWriter.Flush();
         }
         
-        internal static void WriteContext(this JsonWriter writer)
+        internal static void WriteContext(this JsonWriter writer, Tile tile)
         {
             writer.WritePropertyName("@context");
             writer.WriteOpen();
@@ -122,8 +124,12 @@ namespace RouteableTiles.IO.JsonLD
             writer.WritePropertyName("dcterms:isPartOf");
             writer.WriteOpen();
             
-            writer.WriteProperty("@id", "https://tiles.openplanner.team/planet", true);
+            // TODO: generate this URL based on the request info instead of hardcoding.
+            writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/{tile.Zoom}/{tile.X}/{tile.Y}/", true);
             writer.WriteProperty("@type", "hydra:Collection", true);
+            writer.WriteProperty("tiles:zoom", $"{tile.Zoom}");
+            writer.WriteProperty("tiles:longitudeTile", $"{tile.X}");
+            writer.WriteProperty("tiles:latitudeTile", $"{tile.Y}");
             writer.WriteProperty("dcterms:license", "http://opendatacommons.org/licenses/odbl/1-0/", true);
             writer.WriteProperty("dcterms:rights", "http://www.openstreetmap.org/copyright", true);
             
