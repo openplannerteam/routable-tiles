@@ -11,6 +11,17 @@ services:
       - /var/services/routeable-tiles0/logs:/var/app/logs
     networks:
       - osm-service
+  osm-service1:
+    image: openplannerteam/routeable-tiles-api
+    container_name: routeable-tiles1
+    restart: always
+    ports:
+      - "5001:5000"
+    volumes:
+      - /var/services/data/db/:/var/app/db/
+      - /var/services/routeable-tiles1/logs:/var/app/logs
+    networks:
+      - osm-service
 
 networks:
   osm-service:
