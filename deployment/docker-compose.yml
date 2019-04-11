@@ -14,4 +14,4 @@ services:
 
 networks:
   osm-service:
-driver: bridge
+    driver: bridge
