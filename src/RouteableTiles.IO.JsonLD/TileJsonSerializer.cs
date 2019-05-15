@@ -25,24 +25,24 @@ namespace RouteableTiles.IO.JsonLD
                     predicate = "osm:highway",
                     mapping = new Dictionary<string, object>()
                     {
-                        {"motorway", "osm,Motorway"},
-                        {"trunk", "osm,Trunk"},
-                        {"primary", "osm,Primary"},
-                        {"secondary", "osm,Secondary"},
-                        {"tertiary", "osm,Tertiary"},
-                        {"unclassified", "osm,Unclassified"},
-                        {"residential", "osm,Residential"},
-                        {"motorway_link", "osm,MotorwayLink"},
-                        {"trunk_link", "osm,TrunkLink"},
-                        {"primary_link", "osm,PrimaryLink"},
-                        {"secondary_link", "osm,SecondaryLink"},
-                        {"tertiary_link", "osm,TertiaryLink"},
-                        {"service", "osm,Service"},
-                        {"track", "osm,Track"},
-                        {"footway", "osm,Footway"},
-                        {"path", "osm,Path"},
-                        {"living_street", "osm,LivingStreet"},
-                        {"cycleway", "osm,Cycleway"}
+                        {"motorway", "osm:Motorway"},
+                        {"trunk", "osm:Trunk"},
+                        {"primary", "osm:Primary"},
+                        {"secondary", "osm:Secondary"},
+                        {"tertiary", "osm:Tertiary"},
+                        {"unclassified", "osm:Unclassified"},
+                        {"residential", "osm:Residential"},
+                        {"motorway_link", "osm:MotorwayLink"},
+                        {"trunk_link", "osm:TrunkLink"},
+                        {"primary_link", "osm:PrimaryLink"},
+                        {"secondary_link", "osm:SecondaryLink"},
+                        {"tertiary_link", "osm:TertiaryLink"},
+                        {"service", "osm:Service"},
+                        {"track", "osm:Track"},
+                        {"footway", "osm:Footway"},
+                        {"path", "osm:Path"},
+                        {"living_street", "osm:LivingStreet"},
+                        {"cycleway", "osm:Cycleway"}
                     }
                 }
             },
@@ -282,7 +282,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteArrayOpen();
             foreach (var tag in undefinedTags)
             {
-                writer.WriteArrayValue($"{tag.Key}={tag.Value}");
+                writer.WriteArrayValue($"{tag.Key}={tag.Value}", true, true);
             }
             writer.WriteArrayClose();
         }
