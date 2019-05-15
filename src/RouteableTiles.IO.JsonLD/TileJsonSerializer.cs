@@ -115,11 +115,29 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteOpen();
             writer.WriteProperty("@type", "@id", true);
             writer.WriteClose();
-            writer.WritePropertyName("osm:nodes");
+
+            foreach (var mapping in SemanticMapping)
+            {
+                if (mapping.Value.mapping == null || mapping.Value.mapping.Count == 0) continue;
+                
+                writer.WritePropertyName(mapping.Value.predicate);
+                writer.WriteOpen();
+                writer.WriteProperty("@type", "@id", true);
+                writer.WriteClose();
+            }
+            
+            writer.WritePropertyName("osm:hasNodes");
             writer.WriteOpen();
             writer.WriteProperty("@container", "@list", true);
             writer.WriteProperty("@type", "@id", true);
             writer.WriteClose();
+            
+            writer.WritePropertyName("osm:hasMembers");
+            writer.WriteOpen();
+            writer.WriteProperty("@container", "@list", true);
+            writer.WriteProperty("@type", "@id", true);
+            writer.WriteClose();
+            
             writer.WriteClose();
             
             writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/{tile.Zoom}/{tile.X}/{tile.Y}/", true);
@@ -203,7 +221,7 @@ namespace RouteableTiles.IO.JsonLD
                 writer.WriteTags(way.Tags);
             }
             
-            writer.WritePropertyName("osm:nodes");
+            writer.WritePropertyName("osm:hasNodes");
             
             writer.WriteArrayOpen();
             if (way.Nodes != null)
@@ -233,7 +251,7 @@ namespace RouteableTiles.IO.JsonLD
                 writer.WriteTags(relation.Tags);
             }
             
-            writer.WritePropertyName("osm:members");
+            writer.WritePropertyName("osm:hasMembers");
             
             writer.WriteArrayOpen();
             if (relation.Members != null)
