@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using OsmSharp;
 using OsmSharp.Tags;
+using RouteableTiles.IO.JsonLD.Semantics;
 using RouteableTiles.Tiles;
 
 [assembly: InternalsVisibleTo("RouteableTiles.Tests")]
@@ -13,46 +14,46 @@ namespace RouteableTiles.IO.JsonLD
     public static class JsonSerializer
     {
         /// <summary>
-        /// Contains all supported vehicle types, see:
-        ///
-        /// https://wiki.openstreetmap.org/wiki/Key:access
+        /// The semantic mapping to use.
         /// </summary>
-        private static HashSet<string> VehicleTypes = new HashSet<string>(new[]
+        public static readonly Dictionary<string, TagMapperConfig> SemanticMapping = new Dictionary<string, TagMapperConfig>()
         {
-            "access",
-            "bicycle",
-            "foot",
-            "ski",
-            "horse",
-            "vehicle",
-            "carriage",
-            "trailer",
-            "caravan",
-            "motor_vehicle",
-            "motorcycle",
-            "moped",
-            "mofa",
-            "motorocar",
-            "motorhome",
-            "tourist_bus",
-            "coach",
-            "goods",
-            "hgv",
-            "hgv_articulated",
-            "agricultural",
-            "atv",
-            "snowmobile",
-            "psv",
-            "bus",
-            "minibus",
-            "share_taxi",
-            "taxi",
-            "hov",
-            "car_sharing",
-            "emergency",
-            "hazmat",
-            "disabled"
-        });
+            {
+                "highway", new TagMapperConfig()
+                {
+                    osm_key = "highway",
+                    predicate = "osm:highway",
+                    mapping = new Dictionary<string, object>()
+                    {
+                        {"motorway", "osm,Motorway"},
+                        {"trunk", "osm,Trunk"},
+                        {"primary", "osm,Primary"},
+                        {"secondary", "osm,Secondary"},
+                        {"tertiary", "osm,Tertiary"},
+                        {"unclassified", "osm,Unclassified"},
+                        {"residential", "osm,Residential"},
+                        {"motorway_link", "osm,MotorwayLink"},
+                        {"trunk_link", "osm,TrunkLink"},
+                        {"primary_link", "osm,PrimaryLink"},
+                        {"secondary_link", "osm,SecondaryLink"},
+                        {"tertiary_link", "osm,TertiaryLink"},
+                        {"service", "osm,Service"},
+                        {"track", "osm,Track"},
+                        {"footway", "osm,Footway"},
+                        {"path", "osm,Path"},
+                        {"living_street", "osm,LivingStreet"},
+                        {"cycleway", "osm,Cycleway"}
+                    }
+                }
+            },
+            {
+                "name", new TagMapperConfig()
+                {
+                    osm_key = "name",
+                    predicate = "osm:name"
+                }
+            }
+        };
         
         /// <summary>
         /// Writes the given enumerable of osm geo objects to the given text writer in JSON-LD routeable tiles format.
@@ -181,26 +182,7 @@ namespace RouteableTiles.IO.JsonLD
             
             if (node.Tags != null)
             {
-                foreach (var tag in node.Tags)
-                {
-                    if (writer.WriteAccessTag(tag)) continue;
-                    
-                    switch (tag.Key)
-                    {
-                        case "name":
-                            writer.WriteProperty("rdfs:label", tag.Value, true, true);
-                            break;
-                        case "highway":
-                            writer.WriteProperty("osm:highway", "osm:" + tag.Value, true, true);
-                            break;
-                        case "maxspeed":
-                            writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
-                            break;
-                        default:
-                            writer.WriteProperty($"osm:{tag.Key}", "osm:" + tag.Value, true, true);
-                            break;
-                    }
-                }
+                writer.WriteTags(node.Tags);
             }
 
             writer.WriteClose();
@@ -218,26 +200,7 @@ namespace RouteableTiles.IO.JsonLD
 
             if (way.Tags != null)
             {
-                foreach (var tag in way.Tags)
-                {
-                    if (writer.WriteAccessTag(tag)) continue;
-                    
-                    switch (tag.Key)
-                    {
-                        case "name":
-                            writer.WriteProperty("rdfs:label", tag.Value, true, true);
-                            break;
-                        case "highway":
-                            writer.WriteProperty("osm:highway", "osm:" + tag.Value, true, true);
-                            break;
-                        case "maxspeed":
-                            writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
-                            break;
-                        default:
-                            writer.WriteProperty($"osm:{tag.Key}", "osm:" + tag.Value, true, true);
-                            break;
-                    }
-                }
+                writer.WriteTags(way.Tags);
             }
             
             writer.WritePropertyName("osm:nodes");
@@ -267,26 +230,7 @@ namespace RouteableTiles.IO.JsonLD
 
             if (relation.Tags != null)
             {
-                foreach (var tag in relation.Tags)
-                {
-                    if (writer.WriteAccessTag(tag)) continue;
-                    
-                    switch (tag.Key)
-                    {
-                        case "name":
-                            writer.WriteProperty("rdfs:label", tag.Value, true, true);
-                            break;
-                        case "highway":
-                            writer.WriteProperty("osm:highway", "osm:" + tag.Value, true, true);
-                            break;
-                        case "maxspeed":
-                            writer.WriteProperty("osm:maxspeed", tag.Value, true, true);
-                            break;
-                        default:
-                            writer.WriteProperty($"osm:{tag.Key}", "osm:" + tag.Value, true, true);
-                            break;
-                    }
-                }
+                writer.WriteTags(relation.Tags);
             }
             
             writer.WritePropertyName("osm:members");
@@ -324,15 +268,23 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteClose();
         }
 
-        internal static bool WriteAccessTag(this JsonWriter writer, Tag tag)
+        internal static void WriteTags(this JsonWriter writer, TagsCollectionBase tags)
         {
-            if (VehicleTypes.Contains(tag.Key))
+            var undefinedTags = new List<Tag>();
+            foreach (var tag in tags)
             {
-                writer.WriteProperty("osm:" + tag.Key, "osm:" + tag.Value, true, true);
-                return true;
+                if (tag.Map(SemanticMapping, writer)) continue;
+                
+                undefinedTags.Add(tag);
             }
-
-            return false;
+            
+            writer.WritePropertyName("osm:hasTag");
+            writer.WriteArrayOpen();
+            foreach (var tag in undefinedTags)
+            {
+                writer.WriteArrayValue($"{tag.Key}={tag.Value}");
+            }
+            writer.WriteArrayClose();
         }
     }
 }

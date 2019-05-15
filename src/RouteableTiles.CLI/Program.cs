@@ -18,7 +18,7 @@ namespace RouteableTiles.CLI
                 args = new string[]
                 {
                     @"/data/work/data/OSM/belgium-highways.osm.pbf",
-                    @"/data/work/openplannerteam/data/tilesdb/",
+                    @"/data/work/openplannerteam/data/tilesdb-relations/",
                     @"14"
                 };
             }

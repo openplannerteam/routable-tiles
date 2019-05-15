@@ -12,6 +12,12 @@ Or the Benelux:
 
 ![Image of tiles for ghent](benelux.png)
 
+## Generating tiles
+
+First filter out all non-routing data using osmosis:
+
+`osmosis --read-pbf brussels-latest.osm.pbf --lp --tf accept-ways highway=* route=* --tf accept-relations type=route,restriction --used-node --lp --write-pbf brussels-routing.osm.pbf`
+
 ## Deployment
 
 This is via docker, start the container like this, with `/path/to/db` the path to the database create by the CLI project:
