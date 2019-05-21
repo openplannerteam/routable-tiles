@@ -1,8 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
+using OsmSharp;
 using OsmSharp.Streams;
+using OsmSharp.Streams.Collections;
 using RouteableTiles.IO.JsonLD;
 using Serilog;
 
@@ -17,7 +20,7 @@ namespace RouteableTiles.CLI
             {
                 args = new string[]
                 {
-                    @"/data/work/data/OSM/belgium-highways.osm.pbf",
+                    @"/data/work/data/OSM/belgium-latest.osm.pbf",
                     @"/data/work/openplannerteam/data/tilesdb-relations/",
                     @"14"
                 };
@@ -90,9 +93,40 @@ namespace RouteableTiles.CLI
                         File.OpenRead(args[0]));
                     var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
                     progress.RegisterSource(source);
+                    
+                    // filter out routeable data only.
+                    var nodeIndex = new OsmIdIndex();
+                    while (progress.MoveNext(true, false, true))
+                    {
+                        if (!(progress.Current() is Way w) || w.Nodes == null) continue;
+                        if (w.Tags == null || !w.Tags.ContainsKey("highway")) continue;
+                
+                        foreach (var n in w.Nodes)
+                        {
+                            nodeIndex.Add(n);
+                        }
+                    }
+
+                    var filtered = new OsmEnumerableStreamSource(progress.Where(x =>
+                    {
+                        if (x is Node)
+                        {
+                            return nodeIndex.Contains(x.Id.Value);
+                        }
+                        else if (x is Way)
+                        {
+                            return x.Tags != null && x.Tags.ContainsKey("highway");
+                        }
+                        else
+                        {
+                            if (x.Tags == null) return false;
+                            return x.Tags.ContainsKey("route") ||
+                                   x.Tags.ContainsKey("restriction");
+                        }
+                    }));
 
                     // splitting tiles and writing indexes.
-                    Build.Builder.Build(progress, args[1], zoom, compressed);
+                    Build.Builder.Build(filtered, args[1], zoom, compressed);
                 }
                 else
                 {
