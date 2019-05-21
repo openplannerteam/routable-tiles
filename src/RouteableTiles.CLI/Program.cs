@@ -65,7 +65,7 @@ namespace RouteableTiles.CLI
                 // validate arguments.
                 if (args.Length < 3)
                 {
-                    Log.Fatal("Expected 3 arguments: inputfile cache zoom routablestiles");
+                    Log.Fatal("Expected 3 arguments: inputfile outputdir zoom");
                     return;
                 }
                 if (!File.Exists(args[0]))
@@ -88,7 +88,7 @@ namespace RouteableTiles.CLI
                 const bool compressed = true;
                 if (!File.Exists(Path.Combine(args[1], "0", "0", "0.nodes.idx")))
                 {
-                    Log.Information("The tiled DB doesn't exist yet, rebuilding...");
+                    Log.Information("Building the tiled DB...");
                     var source = new OsmSharp.Streams.PBFOsmStreamSource(
                         File.OpenRead(args[0]));
                     var progress = new OsmSharp.Streams.Filters.OsmStreamFilterProgress();
