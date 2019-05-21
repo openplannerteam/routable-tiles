@@ -20,4 +20,11 @@
       <ProjectReference Include="..\RouteableTiles\RouteableTiles.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="..\..\ontology\mapping_config.json">
+        <Link>mapping_config.json</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

@@ -13,47 +13,47 @@ namespace RouteableTiles.IO.JsonLD
 {
     public static class JsonSerializer
     {
-        /// <summary>
-        /// The semantic mapping to use.
-        /// </summary>
-        public static readonly Dictionary<string, TagMapperConfig> SemanticMapping = new Dictionary<string, TagMapperConfig>()
-        {
-            {
-                "highway", new TagMapperConfig()
-                {
-                    osm_key = "highway",
-                    predicate = "osm:highway",
-                    mapping = new Dictionary<string, object>()
-                    {
-                        {"motorway", "osm:Motorway"},
-                        {"trunk", "osm:Trunk"},
-                        {"primary", "osm:Primary"},
-                        {"secondary", "osm:Secondary"},
-                        {"tertiary", "osm:Tertiary"},
-                        {"unclassified", "osm:Unclassified"},
-                        {"residential", "osm:Residential"},
-                        {"motorway_link", "osm:MotorwayLink"},
-                        {"trunk_link", "osm:TrunkLink"},
-                        {"primary_link", "osm:PrimaryLink"},
-                        {"secondary_link", "osm:SecondaryLink"},
-                        {"tertiary_link", "osm:TertiaryLink"},
-                        {"service", "osm:Service"},
-                        {"track", "osm:Track"},
-                        {"footway", "osm:Footway"},
-                        {"path", "osm:Path"},
-                        {"living_street", "osm:LivingStreet"},
-                        {"cycleway", "osm:Cycleway"}
-                    }
-                }
-            },
-            {
-                "name", new TagMapperConfig()
-                {
-                    osm_key = "name",
-                    predicate = "osm:name"
-                }
-            }
-        };
+//        /// <summary>
+//        /// The semantic mapping to use.
+//        /// </summary>
+//        public static readonly Dictionary<string, TagMapperConfig> SemanticMapping = new Dictionary<string, TagMapperConfig>()
+//        {
+//            {
+//                "highway", new TagMapperConfig()
+//                {
+//                    osm_key = "highway",
+//                    predicate = "osm:highway",
+//                    mapping = new Dictionary<string, object>()
+//                    {
+//                        {"motorway", "osm:Motorway"},
+//                        {"trunk", "osm:Trunk"},
+//                        {"primary", "osm:Primary"},
+//                        {"secondary", "osm:Secondary"},
+//                        {"tertiary", "osm:Tertiary"},
+//                        {"unclassified", "osm:Unclassified"},
+//                        {"residential", "osm:Residential"},
+//                        {"motorway_link", "osm:MotorwayLink"},
+//                        {"trunk_link", "osm:TrunkLink"},
+//                        {"primary_link", "osm:PrimaryLink"},
+//                        {"secondary_link", "osm:SecondaryLink"},
+//                        {"tertiary_link", "osm:TertiaryLink"},
+//                        {"service", "osm:Service"},
+//                        {"track", "osm:Track"},
+//                        {"footway", "osm:Footway"},
+//                        {"path", "osm:Path"},
+//                        {"living_street", "osm:LivingStreet"},
+//                        {"cycleway", "osm:Cycleway"}
+//                    }
+//                }
+//            },
+//            {
+//                "name", new TagMapperConfig()
+//                {
+//                    osm_key = "name",
+//                    predicate = "osm:name"
+//                }
+//            }
+//        };
         
         /// <summary>
         /// Writes the given enumerable of osm geo objects to the given text writer in JSON-LD routeable tiles format.
@@ -61,12 +61,13 @@ namespace RouteableTiles.IO.JsonLD
         /// <param name="data">The data.</param>
         /// <param name="tile">The tile.</param>
         /// <param name="writer">The writer.</param>
-        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile)
+        /// <param name="mapping">The mapping.</param>
+        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile, Dictionary<string, TagMapperConfig> mapping)
         {
             var jsonWriter = new JsonWriter(writer);
             jsonWriter.WriteOpen();
             
-            jsonWriter.WriteContext(tile);
+            jsonWriter.WriteContext(tile, mapping);
             
             jsonWriter.WritePropertyName("@graph");
             jsonWriter.WriteArrayOpen();
@@ -76,13 +77,13 @@ namespace RouteableTiles.IO.JsonLD
                 switch (osmGeo)
                 {
                     case Node node:
-                        jsonWriter.WriteNode(node);
+                        jsonWriter.WriteNode(node, mapping);
                         break;
                     case Way way:
-                        jsonWriter.WriteWay(way);
+                        jsonWriter.WriteWay(way, mapping);
                         break;
                     case Relation relation:
-                        jsonWriter.WriteRelation(relation);
+                        jsonWriter.WriteRelation(relation, mapping);
                         break;
                 }
             }
@@ -92,7 +93,7 @@ namespace RouteableTiles.IO.JsonLD
             jsonWriter.Flush();
         }
         
-        internal static void WriteContext(this JsonWriter writer, Tile tile)
+        internal static void WriteContext(this JsonWriter writer, Tile tile, Dictionary<string, TagMapperConfig> mapping)
         {
             writer.WritePropertyName("@context");
             writer.WriteOpen();
@@ -116,11 +117,11 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteProperty("@type", "@id", true);
             writer.WriteClose();
 
-            foreach (var mapping in SemanticMapping)
+            foreach (var map in mapping)
             {
-                if (mapping.Value.mapping == null || mapping.Value.mapping.Count == 0) continue;
+                if (map.Value.mapping == null || map.Value.mapping.Count == 0) continue;
                 
-                writer.WritePropertyName(mapping.Value.predicate);
+                writer.WritePropertyName(map.Value.predicate);
                 writer.WriteOpen();
                 writer.WriteProperty("@type", "@id", true);
                 writer.WriteClose();
@@ -148,7 +149,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WritePropertyName("dcterms:isPartOf");
             writer.WriteOpen();
             
-            // TODO: generate this URL based on the request info instead of hardcoding.
+            // TODO: generate this URL based on the request info instead of hardcoding, it's possible this is hosted somewhere else.
             writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/", true);
             writer.WriteProperty("@type", "hydra:Collection", true);
             writer.WriteProperty("dcterms:license", "http://opendatacommons.org/licenses/odbl/1-0/", true);
@@ -180,7 +181,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteClose();
         }
 
-        internal static void WriteNode(this JsonWriter writer, Node node)
+        internal static void WriteNode(this JsonWriter writer, Node node, Dictionary<string, TagMapperConfig> mapping)
         {
             if (writer == null)
             {
@@ -200,13 +201,13 @@ namespace RouteableTiles.IO.JsonLD
             
             if (node.Tags != null)
             {
-                writer.WriteTags(node.Tags);
+                writer.WriteTags(node.Tags, mapping);
             }
 
             writer.WriteClose();
         }
 
-        internal static void WriteWay(this JsonWriter writer, Way way)
+        internal static void WriteWay(this JsonWriter writer, Way way, Dictionary<string, TagMapperConfig> mapping)
         {
             if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
             if (way == null) { throw new ArgumentNullException(nameof(way)); }
@@ -218,7 +219,7 @@ namespace RouteableTiles.IO.JsonLD
 
             if (way.Tags != null)
             {
-                writer.WriteTags(way.Tags);
+                writer.WriteTags(way.Tags, mapping);
             }
             
             writer.WritePropertyName("osm:hasNodes");
@@ -236,7 +237,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteClose();
         }
 
-        internal static void WriteRelation(this JsonWriter writer, Relation relation)
+        internal static void WriteRelation(this JsonWriter writer, Relation relation, Dictionary<string, TagMapperConfig> mapping)
         {
             if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
             if (relation == null) { throw new ArgumentNullException(nameof(relation)); }
@@ -248,7 +249,7 @@ namespace RouteableTiles.IO.JsonLD
 
             if (relation.Tags != null)
             {
-                writer.WriteTags(relation.Tags);
+                writer.WriteTags(relation.Tags, mapping);
             }
             
             writer.WritePropertyName("osm:hasMembers");
@@ -286,12 +287,12 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteClose();
         }
 
-        internal static void WriteTags(this JsonWriter writer, TagsCollectionBase tags)
+        internal static void WriteTags(this JsonWriter writer, TagsCollectionBase tags, Dictionary<string, TagMapperConfig> mapping)
         {
             var undefinedTags = new List<Tag>();
             foreach (var tag in tags)
             {
-                if (tag.Map(SemanticMapping, writer)) continue;
+                if (tag.Map(mapping, writer)) continue;
                 
                 undefinedTags.Add(tag);
             }

@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RouteableTiles.API.Results;
+using RouteableTiles.IO.JsonLD.Semantics;
 using Serilog;
 
 namespace RouteableTiles.API
@@ -75,8 +76,8 @@ namespace RouteableTiles.API
             });
             
             DatabaseInstance.Default = new Database(this.Configuration["db"], 14);
+            JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(this.Configuration["mapping"]);
 
-            //app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using OsmSharp;
 using RouteableTiles.API.Controllers;
 using RouteableTiles.IO.JsonLD;
+using RouteableTiles.IO.JsonLD.Semantics;
 
 namespace RouteableTiles.API.Results
 {
@@ -23,6 +24,11 @@ namespace RouteableTiles.API.Results
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
         }
+        
+        /// <summary>
+        /// Gets or sets the mappings.
+        /// </summary>
+        internal static Dictionary<string, TagMapperConfig> Mapping { get; set; }
         
         protected override bool CanWriteType(Type type)
         {
@@ -38,7 +44,7 @@ namespace RouteableTiles.API.Results
                 throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDOutputFormatter)}.");
             }
         
-            response.Data.WriteTo(writer, response.Tile);
+            response.Data.WriteTo(writer, response.Tile, JsonLDOutputFormatter.Mapping);
             
             return Task.CompletedTask;
         }

@@ -27,6 +27,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles.IO.JsonLD", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteableTiles.API", "src\RouteableTiles.API\RouteableTiles.API.csproj", "{33713CE1-EF42-4D64-ACCF-038E38160852}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ontology", "ontology", "{906EFA17-E852-4960-816F-646724FAE296}"
+ProjectSection(SolutionItems) = preProject
+	ontology\mapping_config.json = ontology\mapping_config.json
+	ontology\README.md = ontology\README.md
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
