@@ -21,7 +21,7 @@ namespace RouteableTiles.CLI
                 args = new string[]
                 {
                     @"/data/work/data/OSM/belgium-latest.osm.pbf",
-                    @"/data/work/openplannerteam/data/tilesdb-relations/",
+                    @"/media/xivk/2T-SSD-EXT/db-germany/",
                     @"14"
                 };
             }
@@ -60,8 +60,8 @@ namespace RouteableTiles.CLI
                 .WriteTo.File(Path.Combine("logs", "log-.txt"), rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
-            try
-            {
+//            try
+//            {
                 // validate arguments.
                 if (args.Length < 3)
                 {
@@ -132,12 +132,12 @@ namespace RouteableTiles.CLI
                 {
                     Log.Error("The tiled DB already exists, cannot overwrite, delete it first...");
                 }
-            }
-            catch (Exception e)
-            {
-                Log.Fatal(e, "Unhandled exception.");
-                throw;
-            }
+//            }
+//            catch (Exception e)
+//            {
+//                Log.Fatal(e, "Unhandled exception.");
+//                throw;
+//            }
         }
     }
 }

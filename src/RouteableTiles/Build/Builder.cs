@@ -32,7 +32,8 @@ namespace RouteableTiles.Build
             {
                 var newTiles = new List<Tile>();
 
-                System.Threading.Tasks.Parallel.For(0, tiles.Count, (t) =>
+                for (var t = 0; t < tiles.Count; t++)
+                //System.Threading.Tasks.Parallel.For(0, tiles.Count, (t) =>
                 {
                     var subTile = tiles[t];
                     Log.Logger.Information($"Building for tile ({t + 1}/{tiles.Count}):{subTile.Zoom}/{subTile.X}/{subTile.Y}...");
@@ -42,7 +43,7 @@ namespace RouteableTiles.Build
                     {
                         newTiles.AddRange(subTiles);
                     }
-                });
+                }
 
                 if (newTiles.Count == 0)
                 {
@@ -69,16 +70,22 @@ namespace RouteableTiles.Build
             var relationIndex = RelationProcessor.Process(source, path, maxZoom, tile, nodeIndex, wayIndex, compressed);
 
             // write the indices to disk.
-            var actions = new List<Action>
-            {
-                () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
-                () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx")),
-                () => relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"))
-            };
-            System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
+//            var actions = new List<Action>
+//            {
+//                () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
+//                () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx")),
+//                () => relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"))
+//            };
+//            System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
+            nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                tile.X.ToString(), tile.Y.ToString() + ".nodes.idx"));
+            wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                tile.X.ToString(), tile.Y.ToString() + ".ways.idx"));
+            relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
             
             return nonEmptyTiles;
         }
