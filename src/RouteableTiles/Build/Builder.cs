@@ -146,16 +146,22 @@ namespace RouteableTiles.Build
             }
 
             // write the indexes to disk.
-            var actions = new List<Action>
-            {
-                () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
-                () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx")),
-                () => relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
-                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"))
-            };
-            System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
+            nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                tile.X.ToString(), tile.Y.ToString() + ".nodes.idx"));
+            wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                tile.X.ToString(), tile.Y.ToString() + ".ways.idx"));
+            relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+                tile.X.ToString(), tile.Y.ToString() + ".relations.idx"));
+//            var actions = new List<Action>
+//            {
+//                () => nodeIndex.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".nodes.idx")),
+//                () => wayIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".ways.idx")),
+//                () => relationIndex?.Write(FileSystemFacade.FileSystem.Combine(path, tile.Zoom.ToString(),
+//                    tile.X.ToString(), tile.Y.ToString() + ".relations.idx"))
+//            };
+//            System.Threading.Tasks.Parallel.ForEach(actions, (a) => a());
 
             if (FileSystemFacade.FileSystem.Exists(nodeFile))
             {

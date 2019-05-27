@@ -20,8 +20,8 @@ namespace RouteableTiles.CLI
             {
                 args = new string[]
                 {
-                    @"/data/work/data/OSM/belgium-latest.osm.pbf",
-                    @"/media/xivk/2T-SSD-EXT/db-germany/",
+                    @"/data/work/data/OSM/planet-latest.osm.pbf",
+                    @"/media/xivk/2T-SSD-EXT/db-planet/",
                     @"14"
                 };
             }
@@ -85,7 +85,7 @@ namespace RouteableTiles.CLI
                 }
 
                 var ticks = DateTime.Now.Ticks;
-                const bool compressed = true;
+                const bool compressed = false;
                 if (!File.Exists(Path.Combine(args[1], "0", "0", "0.nodes.idx")))
                 {
                     Log.Information("Building the tiled DB...");

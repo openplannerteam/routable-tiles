@@ -1,10 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using OsmSharp;
 using OsmSharp.IO.Binary;
 using OsmSharp.Streams;
-using RouteableTiles.IO;
 using RouteableTiles.Build.Indexes;
 using RouteableTiles.Tiles;
 
@@ -15,7 +14,6 @@ namespace RouteableTiles.Build
     /// </summary>
     internal static class WayProcessor
     {
-        
         /// <summary>
         /// Processes the ways in the given stream until the first on-way object is reached. Assumed the current stream position already contains a way.
         /// </summary>
@@ -28,73 +26,81 @@ namespace RouteableTiles.Build
         /// <returns>The indexed node id's with a masked zoom.</returns>
         public static Index Process(OsmStreamSource source, string path, uint maxZoom, Tile tile,
             Index nodeIndex, bool compressed = false)
-        { 
-            // split ways.
-            var subtiles = new Dictionary<ulong, Stream>();
-            foreach (var subTile in tile.GetSubtilesAt(tile.Zoom + 2))
+        {
+            try
             {
-                subtiles.Add(subTile.LocalId, null);
-            }
-
-            // build the ways index.
-            var wayIndex = new Index();
-            do
-            {
-                var current = source.Current();
-                if (current.Type != OsmGeoType.Way)
+                // split ways.
+                var subtiles = new Dictionary<ulong, Stream>();
+                foreach (var subTile in tile.GetSubtilesAt(tile.Zoom + 2))
                 {
-                    break;
+                    subtiles.Add(subTile.LocalId, null);
                 }
 
-                // calculate tile.
-                var w = (current as Way);
-                if (w.Nodes == null)
+                // build the ways index.
+                var wayIndex = new Index();
+                do
                 {
-                    continue;
-                }
-
-                var mask = 0;
-                foreach (var node in w.Nodes)
-                {
-                    if (nodeIndex.TryGetMask(node, out var nodeMask))
+                    var current = source.Current();
+                    if (current.Type != OsmGeoType.Way)
                     {
-                        mask |= nodeMask;
+                        break;
                     }
-                }
 
-                // add way to output(s).
-                foreach(var wayTile in tile.SubTilesForMask2(mask))
-                {
-                    // is tile a subtile.
-                    if (!subtiles.TryGetValue(wayTile.LocalId, out var stream))
+                    // calculate tile.
+                    var w = (current as Way);
+                    if (w.Nodes == null)
                     {
                         continue;
                     }
 
-                    // initialize stream if needed.
-                    if (stream == null)
+                    var mask = 0;
+                    foreach (var node in w.Nodes)
                     {
-                        stream = DatabaseCommon.CreateTile(path, OsmGeoType.Way, wayTile, compressed);
-                        subtiles[wayTile.LocalId] = stream;
+                        if (nodeIndex.TryGetMask(node, out var nodeMask))
+                        {
+                            mask |= nodeMask;
+                        }
                     }
 
-                    // write way.
-                    stream.Append(w);
+                    // add way to output(s).
+                    foreach (var wayTile in tile.SubTilesForMask2(mask))
+                    {
+                        // is tile a subtile.
+                        if (!subtiles.TryGetValue(wayTile.LocalId, out var stream))
+                        {
+                            continue;
+                        }
+
+                        // initialize stream if needed.
+                        if (stream == null)
+                        {
+                            stream = DatabaseCommon.CreateTile(path, OsmGeoType.Way, wayTile, compressed);
+                            subtiles[wayTile.LocalId] = stream;
+                        }
+
+                        // write way.
+                        stream.Append(w);
+                    }
+
+                    // add way to index.
+                    wayIndex.Add(w.Id.Value, mask);
+                } while (source.MoveNext());
+
+                // flush/dispose all subtile streams.
+                foreach (var subtile in subtiles)
+                {
+                    if (subtile.Value == null) continue;
+                    subtile.Value.Flush();
+                    subtile.Value.Dispose();
                 }
-                
-                // add way to index.
-                wayIndex.Add(w.Id.Value, mask);
-            } while (source.MoveNext());
 
-            // flush/dispose all subtile streams.
-            foreach (var subtile in subtiles)
-            {
-                if (subtile.Value == null) continue;
-                subtile.Value.Flush();
-                subtile.Value.Dispose();
+                return wayIndex;
             }
-
-            return wayIndex;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unhandled exception in {nameof(WayProcessor)}.{nameof(Process)}: {ex}");
+                throw;
+            }
         }
     }
 }

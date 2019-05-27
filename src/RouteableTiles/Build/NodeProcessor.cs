@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -28,66 +29,74 @@ namespace RouteableTiles.Build
         /// <returns>The indexed node id's with a masked zoom.</returns>
         public static Index Process(OsmStreamSource source, string path, uint maxZoom, Tile tile,
             out List<Tile> nonEmptyTiles, out bool hasNext, bool compressed = false)
-        {            
-            // build the set of possible subtiles.
-            var subtiles = new Dictionary<ulong, Stream>();
-            foreach (var subTile in tile.GetSubtilesAt(tile.Zoom + 2))
+        {
+            try
             {
-                subtiles.Add(subTile.LocalId, null);
-            }
+                // build the set of possible subtiles.
+                var subtiles = new Dictionary<ulong, Stream>();
+                foreach (var subTile in tile.GetSubtilesAt(tile.Zoom + 2))
+                {
+                    subtiles.Add(subTile.LocalId, null);
+                }
 
-            // go over all nodes.
-            var nodeIndex = new Index();
-            hasNext = false;
-            while (source.MoveNext())
+                // go over all nodes.
+                var nodeIndex = new Index();
+                hasNext = false;
+                while (source.MoveNext())
+                {
+                    var current = source.Current();
+                    if (current.Type != OsmGeoType.Node)
+                    {
+                        hasNext = true;
+                        break;
+                    }
+
+                    // calculate tile.
+                    var n = (current as Node);
+                    var nodeTile = Tiles.Tile.WorldToTileIndex(n.Latitude.Value, n.Longitude.Value, tile.Zoom + 2);
+
+                    // is tile a subtile.
+                    if (!subtiles.TryGetValue(nodeTile.LocalId, out var stream))
+                    {
+                        continue;
+                    }
+
+                    // initialize stream if needed.
+                    if (stream == null)
+                    {
+                        stream = DatabaseCommon.CreateTile(path, OsmGeoType.Node, nodeTile, compressed);
+                        subtiles[nodeTile.LocalId] = stream;
+                    }
+
+                    // write node.
+                    stream.Append(n);
+
+                    // add node to index.
+                    nodeIndex.Add(n.Id.Value, nodeTile.BuildMask2());
+                }
+
+                // flush/dispose all subtile streams.
+                // keep all non-empty tiles.
+                nonEmptyTiles = new List<Tile>();
+                foreach (var subtile in subtiles)
+                {
+                    if (subtile.Value == null) continue;
+                    subtile.Value.Flush();
+                    subtile.Value.Dispose();
+
+                    if (tile.Zoom + 2 < maxZoom)
+                    {
+                        nonEmptyTiles.Add(Tile.FromLocalId(tile.Zoom + 2, subtile.Key));
+                    }
+                }
+
+                return nodeIndex;
+            }
+            catch (Exception ex)
             {
-                var current = source.Current();
-                if (current.Type != OsmGeoType.Node)
-                {
-                    hasNext = true;
-                    break;
-                }
-
-                // calculate tile.
-                var n = (current as Node);
-                var nodeTile = Tiles.Tile.WorldToTileIndex(n.Latitude.Value, n.Longitude.Value, tile.Zoom + 2);
-
-                // is tile a subtile.
-                if (!subtiles.TryGetValue(nodeTile.LocalId, out var stream))
-                {
-                    continue;
-                }
-
-                // initialize stream if needed.
-                if (stream == null)
-                {
-                    stream = DatabaseCommon.CreateTile(path, OsmGeoType.Node, nodeTile, compressed);
-                    subtiles[nodeTile.LocalId] = stream;
-                }
-
-                // write node.
-                stream.Append(n);
-
-                // add node to index.
-                nodeIndex.Add(n.Id.Value, nodeTile.BuildMask2());
+                Console.WriteLine($"Unhandled exception in {nameof(NodeProcessor)}.{nameof(Process)}: {ex}");
+                throw;
             }
-
-            // flush/dispose all subtile streams.
-            // keep all non-empty tiles.
-            nonEmptyTiles = new List<Tile>();
-            foreach (var subtile in subtiles)
-            {
-                if (subtile.Value == null) continue;
-                subtile.Value.Flush();
-                subtile.Value.Dispose();
-
-                if (tile.Zoom + 2 < maxZoom)
-                {
-                    nonEmptyTiles.Add(Tile.FromLocalId(tile.Zoom + 2, subtile.Key));
-                }
-            }
-
-            return nodeIndex;
         }
     }
 }
