@@ -13,48 +13,6 @@ namespace RouteableTiles.IO.JsonLD
 {
     public static class JsonSerializer
     {
-//        /// <summary>
-//        /// The semantic mapping to use.
-//        /// </summary>
-//        public static readonly Dictionary<string, TagMapperConfig> SemanticMapping = new Dictionary<string, TagMapperConfig>()
-//        {
-//            {
-//                "highway", new TagMapperConfig()
-//                {
-//                    osm_key = "highway",
-//                    predicate = "osm:highway",
-//                    mapping = new Dictionary<string, object>()
-//                    {
-//                        {"motorway", "osm:Motorway"},
-//                        {"trunk", "osm:Trunk"},
-//                        {"primary", "osm:Primary"},
-//                        {"secondary", "osm:Secondary"},
-//                        {"tertiary", "osm:Tertiary"},
-//                        {"unclassified", "osm:Unclassified"},
-//                        {"residential", "osm:Residential"},
-//                        {"motorway_link", "osm:MotorwayLink"},
-//                        {"trunk_link", "osm:TrunkLink"},
-//                        {"primary_link", "osm:PrimaryLink"},
-//                        {"secondary_link", "osm:SecondaryLink"},
-//                        {"tertiary_link", "osm:TertiaryLink"},
-//                        {"service", "osm:Service"},
-//                        {"track", "osm:Track"},
-//                        {"footway", "osm:Footway"},
-//                        {"path", "osm:Path"},
-//                        {"living_street", "osm:LivingStreet"},
-//                        {"cycleway", "osm:Cycleway"}
-//                    }
-//                }
-//            },
-//            {
-//                "name", new TagMapperConfig()
-//                {
-//                    osm_key = "name",
-//                    predicate = "osm:name"
-//                }
-//            }
-//        };
-        
         /// <summary>
         /// Writes the given enumerable of osm geo objects to the given text writer in JSON-LD routeable tiles format.
         /// </summary>
@@ -196,6 +154,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WriteOpen();
 
             writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
+            writer.WriteProperty("@type", "osm:Node", true, true);
             writer.WriteProperty("geo:long", node.Longitude.ToInvariantString());
             writer.WriteProperty("geo:lat", node.Latitude.ToInvariantString());
             
