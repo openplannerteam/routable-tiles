@@ -75,7 +75,7 @@ namespace RouteableTiles.API
                 return next();
             });
             
-            DatabaseInstance.Default = new Database(this.Configuration["db"], 14);
+            DatabaseInstance.Default = new Database(this.Configuration["db"], 14, false);
             JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(this.Configuration["mapping"]);
 
             app.UseMvc();
