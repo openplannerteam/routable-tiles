@@ -36,6 +36,10 @@ namespace RouteableTiles.IO.JsonLD.Semantics
                     writer.WriteProperty(mapperConfig.predicate, mappedString, true, true);
                 }
             }
+            else
+            {
+                return false;
+            }
 
             return true;
         }
