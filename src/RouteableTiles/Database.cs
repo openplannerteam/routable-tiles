@@ -247,7 +247,7 @@ namespace RouteableTiles
 
                         if (first > 0) first--;
                         if (last < w.Nodes.Length - 1) last++;
-                        for (var n = first; n < last; n++)
+                        for (var n = first; n < last + 1; n++)
                         {
                             var nodeId = w.Nodes[n];
                             
