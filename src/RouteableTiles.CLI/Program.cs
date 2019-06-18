@@ -20,8 +20,8 @@ namespace RouteableTiles.CLI
             {
                 args = new string[]
                 {
-                    @"/data/work/data/OSM/planet-latest.osm.pbf",
-                    @"/media/xivk/2T-SSD-EXT/db-planet/",
+                    @"/data/work/data/OSM/belgium-latest.osm.pbf",
+                    @"/data/work/openplannerteam/data/tilesdb/",
                     @"14"
                 };
             }
