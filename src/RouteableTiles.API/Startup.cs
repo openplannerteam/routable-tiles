@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OsmSharp.Db.Tiled;
 using RouteableTiles.API.Results;
 using RouteableTiles.IO.JsonLD.Semantics;
 using Serilog;
@@ -75,7 +76,9 @@ namespace RouteableTiles.API
                 return next();
             });
             
-            DatabaseInstance.Default = new Database(this.Configuration["db"], 14, false);
+            if (!OsmDb.TryLoad(this.Configuration["db"], out var osmDb)) throw new Exception("Osm DB not found!");
+            DatabaseInstance.Default = osmDb;
+            
             JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(this.Configuration["mapping"]);
 
             app.UseMvc();

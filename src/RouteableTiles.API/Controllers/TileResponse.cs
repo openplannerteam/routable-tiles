@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using OsmSharp;
-using RouteableTiles.Tiles;
+using RouteableTiles.IO.JsonLD.Tiles;
 
 namespace RouteableTiles.API.Controllers
 {

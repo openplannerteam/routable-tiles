@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using OsmSharp;
-using Serilog;
+using OsmSharp.Logging;
 
 namespace RouteableTiles.IO.JsonLD.Semantics
 {
@@ -52,7 +52,8 @@ namespace RouteableTiles.IO.JsonLD.Semantics
                 }
                 catch (Exception ex)
                 {
-                    Log.Error("Could not fully parse mapping configuration.", ex);
+                    Logger.Log($"{nameof(TagMapperConfigParser)}.{nameof(Parse)}",
+                        TraceEventType.Error, "Could not fully parse mapping configuration.", ex);
                     throw;
                 }
             }

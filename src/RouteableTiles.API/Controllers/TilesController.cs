@@ -8,7 +8,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using OsmSharp;
 using RouteableTiles.IO.JsonLD;
-using RouteableTiles.Tiles;
+using RouteableTiles.IO.JsonLD.Tiles;
 
 namespace RouteableTiles.API.Controllers
 {
@@ -22,10 +22,10 @@ namespace RouteableTiles.API.Controllers
             var db = DatabaseInstance.Default;
             
             if (db == null) return NotFound();
-            if (db.Zoom != z) return NotFound();
+            if (db.Latest == null) return NotFound();
 
             var tile = new Tile(x, y, z);
-            var data = db.GetRouteableTile(tile);
+            var data = db.Latest.GetRouteableTile(tile);
             if (data == null) return NotFound();
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using OsmSharp;
 using OsmSharp.Tags;
 using RouteableTiles.IO.JsonLD.Semantics;
-using RouteableTiles.Tiles;
+using RouteableTiles.IO.JsonLD.Tiles;
 
 [assembly: InternalsVisibleTo("RouteableTiles.Tests")]
 [assembly: InternalsVisibleTo("RouteableTiles.Tests.Functional")]
