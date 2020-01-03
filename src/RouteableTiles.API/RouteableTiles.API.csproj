@@ -10,7 +10,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
         <PackageReference Include="NSwag.AspNetCore" Version="12.0.9" />
         <PackageReference Include="NSwag.Core" Version="12.0.9" />
-        <PackageReference Include="OsmSharp.Db.Tiled" Version="0.0.3-alpha" />
+        <PackageReference Include="OsmSharp.Db.Tiled" Version="0.0.4-alpha" />
         <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
         <PackageReference Include="Serilog.Extensions.Hosting" Version="2.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />

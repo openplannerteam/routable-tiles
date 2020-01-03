@@ -112,6 +112,26 @@ namespace RouteableTiles.IO.JsonLD.Tiles
                 };
             }
         }
+
+        public List<Tile> GetTilesAt(uint zoom)
+        {
+            if (zoom > this.Zoom)
+            {
+                return this.GetSubtilesAt(zoom);
+            }
+
+            var tiles = new List<Tile>();
+            if (zoom == this.Zoom)
+            {
+                tiles.Add(this);
+            }
+            else
+            {
+                tiles.Add(this.ParentTileAt(zoom));
+            }
+
+            return tiles;
+        }
         
         /// <summary>
         /// Gets the subtiles for this tile at the given zoom level.
@@ -152,6 +172,21 @@ namespace RouteableTiles.IO.JsonLD.Tiles
                 / Math.PI) / 2f * n);
 
             return new Tile { X = x, Y = y, Zoom = zoom };
+        }
+
+        public bool Overlaps(double latitude, double longitude)
+        {
+            var n = (int)Math.Floor(Math.Pow(2, this.Zoom));
+
+            var rad = (latitude / 180d) * System.Math.PI;
+
+            var x = (uint)((longitude + 180.0f) / 360.0f * n);
+            if (this.X != x) return false;
+            var y = (uint)(
+                (1.0f - Math.Log(Math.Tan(rad) + 1.0f / Math.Cos(rad))
+                 / Math.PI) / 2f * n);
+            if (this.Y != y) return false;
+            return true;
         }
 
         public override string ToString()
