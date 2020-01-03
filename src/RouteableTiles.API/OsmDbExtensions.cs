@@ -11,7 +11,9 @@ namespace RouteableTiles.API
     {
         internal static IEnumerable<OsmGeo> GetRouteableTile(this SnapshotDb db, Tile tile)
         {
-            var nodes = db.GetNodesInTile(tile).Where(n => tile.Overlaps(n.Latitude.Value, n.Longitude.Value));
+            var nodes = db.GetNodesInTile(tile).Where(n => n.Longitude != null && 
+                                                           n.Latitude != null && 
+                                                           tile.Overlaps(n.Latitude.Value, n.Longitude.Value));
             var ways = db.GetWaysInTile(tile);
             var relations = db.GetRelationsInTile(tile);
             
