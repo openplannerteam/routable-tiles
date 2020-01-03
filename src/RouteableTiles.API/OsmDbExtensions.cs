@@ -132,14 +132,19 @@ namespace RouteableTiles.API
         internal static IEnumerable<Node> GetNodesInTile(this SnapshotDb db, Tile tile)
         {
             var tiles = tile.GetTilesAt(db.Zoom);
-            
-            foreach (var t in tiles)
-            foreach (var osmGeo in db.GetTile(t.X, t.Y, OsmGeoType.Node))
-            {
-                var node = osmGeo as Node;
-                if (node == null) continue;
 
-                yield return node;
+            foreach (var t in tiles)
+            {
+                var tileData = db.GetTile(t.X, t.Y, OsmGeoType.Node);
+                if (tileData == null) continue;
+                
+                foreach (var osmGeo in tileData)
+                {
+                    var node = osmGeo as Node;
+                    if (node == null) continue;
+
+                    yield return node;
+                }
             }
         }
 
@@ -147,15 +152,20 @@ namespace RouteableTiles.API
         {
             var ids = new HashSet<long>();
             var tiles = tile.GetTilesAt(db.Zoom);
-            
-            foreach (var t in tiles)
-            foreach (var osmGeo in db.GetTile(t.X, t.Y, OsmGeoType.Way))
-            {
-                var way = osmGeo as Way;
-                if (way?.Id == null) continue;
-                if (!ids.Add(way.Id.Value)) continue;
 
-                yield return way;
+            foreach (var t in tiles)
+            {
+                var tileData = db.GetTile(t.X, t.Y, OsmGeoType.Way);
+                if (tileData == null) continue;
+                
+                foreach (var osmGeo in tileData)
+                {
+                    var way = osmGeo as Way;
+                    if (way?.Id == null) continue;
+                    if (!ids.Add(way.Id.Value)) continue;
+
+                    yield return way;
+                }
             }
         }
 
@@ -163,15 +173,20 @@ namespace RouteableTiles.API
         {
             var ids = new HashSet<long>();
             var tiles = tile.GetTilesAt(db.Zoom);
-            
-            foreach (var t in tiles)
-            foreach (var osmGeo in db.GetTile(t.X, t.Y, OsmGeoType.Relation))
-            {
-                var relation = osmGeo as Relation;
-                if (relation?.Id == null) continue;
-                if (!ids.Add(relation.Id.Value)) continue;
 
-                yield return relation;
+            foreach (var t in tiles)
+            {
+                var tileData = db.GetTile(t.X, t.Y, OsmGeoType.Relation);
+                if (tileData == null) continue;
+                
+                foreach (var osmGeo in tileData)
+                {
+                    var relation = osmGeo as Relation;
+                    if (relation?.Id == null) continue;
+                    if (!ids.Add(relation.Id.Value)) continue;
+
+                    yield return relation;
+                }
             }
         }
     }
