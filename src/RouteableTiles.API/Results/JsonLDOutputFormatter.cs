@@ -44,7 +44,7 @@ namespace RouteableTiles.API.Results
                 throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDOutputFormatter)}.");
             }
         
-            response.Data.WriteTo(writer, response.Tile, JsonLDOutputFormatter.Mapping);
+            response.Data.WriteTo(writer, response.Tile, "https://tiles.openplanner.team/planet/", JsonLDOutputFormatter.Mapping);
             
             return Task.CompletedTask;
         }

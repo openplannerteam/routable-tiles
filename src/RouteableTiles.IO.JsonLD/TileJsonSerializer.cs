@@ -18,14 +18,15 @@ namespace RouteableTiles.IO.JsonLD
         /// </summary>
         /// <param name="data">The data.</param>
         /// <param name="tile">The tile.</param>
+        /// <param name="baseUrl">The base url.</param>
         /// <param name="writer">The writer.</param>
         /// <param name="mapping">The mapping.</param>
-        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile, Dictionary<string, TagMapperConfig> mapping)
+        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
         {
             var jsonWriter = new JsonWriter(writer);
             jsonWriter.WriteOpen();
             
-            jsonWriter.WriteContext(tile, mapping);
+            jsonWriter.WriteContext(tile, baseUrl, mapping);
             
             jsonWriter.WritePropertyName("@graph");
             jsonWriter.WriteArrayOpen();
@@ -51,7 +52,7 @@ namespace RouteableTiles.IO.JsonLD
             jsonWriter.Flush();
         }
         
-        internal static void WriteContext(this JsonWriter writer, Tile tile, Dictionary<string, TagMapperConfig> mapping)
+        internal static void WriteContext(this JsonWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
         {
             writer.WritePropertyName("@context");
             writer.WriteOpen();
@@ -99,7 +100,7 @@ namespace RouteableTiles.IO.JsonLD
             
             writer.WriteClose();
             
-            writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/{tile.Zoom}/{tile.X}/{tile.Y}/", true);
+            writer.WriteProperty("@id", $"{baseUrl}{tile.Zoom}/{tile.X}/{tile.Y}/", true);
             writer.WriteProperty("tiles:zoom", $"{tile.Zoom}");
             writer.WriteProperty("tiles:longitudeTile", $"{tile.X}");
             writer.WriteProperty("tiles:latitudeTile", $"{tile.Y}");
@@ -107,8 +108,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WritePropertyName("dcterms:isPartOf");
             writer.WriteOpen();
             
-            // TODO: generate this URL based on the request info instead of hardcoding, it's possible this is hosted somewhere else.
-            writer.WriteProperty("@id", $"https://tiles.openplanner.team/planet/", true);
+            writer.WriteProperty("@id", baseUrl, true);
             writer.WriteProperty("@type", "hydra:Collection", true);
             writer.WriteProperty("dcterms:license", "http://opendatacommons.org/licenses/odbl/1-0/", true);
             writer.WriteProperty("dcterms:rights", "http://www.openstreetmap.org/copyright", true);
@@ -116,7 +116,7 @@ namespace RouteableTiles.IO.JsonLD
             writer.WritePropertyName("hydra:search");
             writer.WriteOpen();
             writer.WriteProperty("@type", "hydra:IriTemplate", true);
-            writer.WriteProperty("hydra:template", "https://tiles.openplanner.team/planet/14/{x}/{y}", true);
+            writer.WriteProperty("hydra:template", $"{baseUrl}" + "/14/{x}/{y}", true);
             writer.WriteProperty("hydra:variableRepresentation", "hydra:BasicRepresentation", true);
             
             writer.WritePropertyName("hydra:mapping");
