@@ -35,7 +35,7 @@ namespace RouteableTiles.API.Results
             return typeof(TileResponse).IsAssignableFrom(type);
         }
 
-        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             var writer = new StreamWriter(context.HttpContext.Response.Body);
 
@@ -44,9 +44,7 @@ namespace RouteableTiles.API.Results
                 throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDOutputFormatter)}.");
             }
         
-            response.Data.WriteTo(writer, response.Tile, "https://tiles.openplanner.team/planet/", JsonLDOutputFormatter.Mapping);
-            
-            return Task.CompletedTask;
+            await response.Data.WriteTo(writer, response.Tile, "https://tiles.openplanner.team/planet/", JsonLDOutputFormatter.Mapping);
         }
     }
 }

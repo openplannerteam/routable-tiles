@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using OsmSharp;
 using OsmSharp.Tags;
 using RouteableTiles.IO.JsonLD.Semantics;
@@ -21,125 +22,125 @@ namespace RouteableTiles.IO.JsonLD
         /// <param name="baseUrl">The base url.</param>
         /// <param name="writer">The writer.</param>
         /// <param name="mapping">The mapping.</param>
-        public static void WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
+        public static async Task WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
         {
             var jsonWriter = new JsonWriter(writer);
-            jsonWriter.WriteOpen();
+            await jsonWriter.WriteOpenAsync();
             
-            jsonWriter.WriteContext(tile, baseUrl, mapping);
+            await jsonWriter.WriteContextAsync(tile, baseUrl, mapping);
             
-            jsonWriter.WritePropertyName("@graph");
-            jsonWriter.WriteArrayOpen();
+            await jsonWriter.WritePropertyNameAsync("@graph");
+            await jsonWriter.WriteArrayOpenAsync();
 
             foreach (var osmGeo in data)
             {
                 switch (osmGeo)
                 {
                     case Node node:
-                        jsonWriter.WriteNode(node, mapping);
+                        await jsonWriter.WriteNodeAsync(node, mapping);
                         break;
                     case Way way:
-                        jsonWriter.WriteWay(way, mapping);
+                        await jsonWriter.WriteWayAsync(way, mapping);
                         break;
                     case Relation relation:
-                        jsonWriter.WriteRelation(relation, mapping);
+                        await jsonWriter.WriteRelationAsync(relation, mapping);
                         break;
                 }
             }
             
-            jsonWriter.WriteArrayClose();
-            jsonWriter.WriteClose();
-            jsonWriter.Flush();
+            await jsonWriter.WriteArrayCloseAsync();
+            await jsonWriter.WriteCloseAsync();
+            await jsonWriter.FlushAsync();
         }
         
-        internal static void WriteContext(this JsonWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
+        internal static async Task WriteContextAsync(this JsonWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
         {
-            writer.WritePropertyName("@context");
-            writer.WriteOpen();
+            await writer.WritePropertyNameAsync("@context");
+            await writer.WriteOpenAsync();
             
-            writer.WriteProperty("tiles", "https://w3id.org/tree/terms#", true);
-            writer.WriteProperty("hydra", "http://www.w3.org/ns/hydra/core#", true);
-            writer.WriteProperty("osm", "https://w3id.org/openstreetmap/terms#", true);
-            writer.WriteProperty("rdfs", "http://www.w3.org/2000/01/rdf-schema#", true);
-            writer.WriteProperty("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#", true);
-            writer.WriteProperty("dcterms", "http://purl.org/dc/terms/", true);
-            writer.WritePropertyName("dcterms:license");
-            writer.WriteOpen();
-            writer.WriteProperty("@type", "@id", true);
-            writer.WriteClose();
-            writer.WritePropertyName("hydra:variableRepresentation", true);
-            writer.WriteOpen();
-            writer.WriteProperty("@type", "@id", true);
-            writer.WriteClose();
-            writer.WritePropertyName("hydra:property");
-            writer.WriteOpen();
-            writer.WriteProperty("@type", "@id", true);
-            writer.WriteClose();
+            await writer.WritePropertyAsync("tiles", "https://w3id.org/tree/terms#", true);
+            await writer.WritePropertyAsync("hydra", "http://www.w3.org/ns/hydra/core#", true);
+            await writer.WritePropertyAsync("osm", "https://w3id.org/openstreetmap/terms#", true);
+            await writer.WritePropertyAsync("rdfs", "http://www.w3.org/2000/01/rdf-schema#", true);
+            await writer.WritePropertyAsync("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#", true);
+            await writer.WritePropertyAsync("dcterms", "http://purl.org/dc/terms/", true);
+            await writer.WritePropertyNameAsync("dcterms:license");
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@type", "@id", true);
+            await writer.WriteCloseAsync();
+            await writer.WritePropertyNameAsync("hydra:variableRepresentation", true);
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@type", "@id", true);
+            await writer.WriteCloseAsync();
+            await writer.WritePropertyNameAsync("hydra:property");
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@type", "@id", true);
+            await writer.WriteCloseAsync();
 
             foreach (var map in mapping)
             {
                 if (map.Value.mapping == null || map.Value.mapping.Count == 0) continue;
                 
-                writer.WritePropertyName(map.Value.predicate);
-                writer.WriteOpen();
-                writer.WriteProperty("@type", "@id", true);
-                writer.WriteClose();
+                await writer.WritePropertyNameAsync(map.Value.predicate);
+                await writer.WriteOpenAsync();
+                await writer.WritePropertyAsync("@type", "@id", true);
+                await writer.WriteCloseAsync();
             }
             
-            writer.WritePropertyName("osm:hasNodes");
-            writer.WriteOpen();
-            writer.WriteProperty("@container", "@list", true);
-            writer.WriteProperty("@type", "@id", true);
-            writer.WriteClose();
+            await writer.WritePropertyNameAsync("osm:hasNodes");
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@container", "@list", true);
+            await writer.WritePropertyAsync("@type", "@id", true);
+            await writer.WriteCloseAsync();
             
-            writer.WritePropertyName("osm:hasMembers");
-            writer.WriteOpen();
-            writer.WriteProperty("@container", "@list", true);
-            writer.WriteProperty("@type", "@id", true);
-            writer.WriteClose();
+            await writer.WritePropertyNameAsync("osm:hasMembers");
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@container", "@list", true);
+            await writer.WritePropertyAsync("@type", "@id", true);
+            await writer.WriteCloseAsync();
             
-            writer.WriteClose();
+            await writer.WriteCloseAsync();
             
-            writer.WriteProperty("@id", $"{baseUrl}{tile.Zoom}/{tile.X}/{tile.Y}/", true);
-            writer.WriteProperty("tiles:zoom", $"{tile.Zoom}");
-            writer.WriteProperty("tiles:longitudeTile", $"{tile.X}");
-            writer.WriteProperty("tiles:latitudeTile", $"{tile.Y}");
+            await writer.WritePropertyAsync("@id", $"{baseUrl}{tile.Zoom}/{tile.X}/{tile.Y}/", true);
+            await writer.WritePropertyAsync("tiles:zoom", $"{tile.Zoom}");
+            await writer.WritePropertyAsync("tiles:longitudeTile", $"{tile.X}");
+            await writer.WritePropertyAsync("tiles:latitudeTile", $"{tile.Y}");
             
-            writer.WritePropertyName("dcterms:isPartOf");
-            writer.WriteOpen();
+            await writer.WritePropertyNameAsync("dcterms:isPartOf");
+            await writer.WriteOpenAsync();
             
-            writer.WriteProperty("@id", baseUrl, true);
-            writer.WriteProperty("@type", "hydra:Collection", true);
-            writer.WriteProperty("dcterms:license", "http://opendatacommons.org/licenses/odbl/1-0/", true);
-            writer.WriteProperty("dcterms:rights", "http://www.openstreetmap.org/copyright", true);
+            await writer.WritePropertyAsync("@id", baseUrl, true);
+            await writer.WritePropertyAsync("@type", "hydra:Collection", true);
+            await writer.WritePropertyAsync("dcterms:license", "http://opendatacommons.org/licenses/odbl/1-0/", true);
+            await writer.WritePropertyAsync("dcterms:rights", "http://www.openstreetmap.org/copyright", true);
             
-            writer.WritePropertyName("hydra:search");
-            writer.WriteOpen();
-            writer.WriteProperty("@type", "hydra:IriTemplate", true);
-            writer.WriteProperty("hydra:template", $"{baseUrl}" + "/14/{x}/{y}", true);
-            writer.WriteProperty("hydra:variableRepresentation", "hydra:BasicRepresentation", true);
+            await writer.WritePropertyNameAsync("hydra:search");
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@type", "hydra:IriTemplate", true);
+            await writer.WritePropertyAsync("hydra:template", $"{baseUrl}" + "/14/{x}/{y}", true);
+            await writer.WritePropertyAsync("hydra:variableRepresentation", "hydra:BasicRepresentation", true);
             
-            writer.WritePropertyName("hydra:mapping");
-            writer.WriteArrayOpen();
-            writer.WriteOpen();
-            writer.WriteProperty("@type", "hydra:IriTemplateMapping", true);
-            writer.WriteProperty("hydra:variable", "x", true);
-            writer.WriteProperty("hydra:property", "tiles:longitudeTile", true);
-            writer.WriteProperty("hydra:required", "true");
-            writer.WriteClose();
-            writer.WriteOpen();
-            writer.WriteProperty("@type", "hydra:IriTemplateMapping", true);
-            writer.WriteProperty("hydra:variable", "y", true);
-            writer.WriteProperty("hydra:property", "tiles:latitudeTile", true);
-            writer.WriteProperty("hydra:required", "true");
-            writer.WriteClose();
-            writer.WriteArrayClose();
-            writer.WriteClose();
+            await writer.WritePropertyNameAsync("hydra:mapping");
+            await writer.WriteArrayOpenAsync();
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@type", "hydra:IriTemplateMapping", true);
+            await writer.WritePropertyAsync("hydra:variable", "x", true);
+            await writer.WritePropertyAsync("hydra:property", "tiles:longitudeTile", true);
+            await writer.WritePropertyAsync("hydra:required", "true");
+            await writer.WriteCloseAsync();
+            await writer.WriteOpenAsync();
+            await writer.WritePropertyAsync("@type", "hydra:IriTemplateMapping", true);
+            await writer.WritePropertyAsync("hydra:variable", "y", true);
+            await writer.WritePropertyAsync("hydra:property", "tiles:latitudeTile", true);
+            await writer.WritePropertyAsync("hydra:required", "true");
+            await writer.WriteCloseAsync();
+            await writer.WriteArrayCloseAsync();
+            await writer.WriteCloseAsync();
             
-            writer.WriteClose();
+            await writer.WriteCloseAsync();
         }
 
-        internal static void WriteNode(this JsonWriter writer, Node node, Dictionary<string, TagMapperConfig> mapping)
+        internal static async Task WriteNodeAsync(this JsonWriter writer, Node node, Dictionary<string, TagMapperConfig> mapping)
         {
             if (writer == null)
             {
@@ -151,118 +152,118 @@ namespace RouteableTiles.IO.JsonLD
                 throw new ArgumentNullException(nameof(node));
             }
 
-            writer.WriteOpen();
+            await writer.WriteOpenAsync();
 
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Node", true, true);
-            writer.WriteProperty("geo:long", node.Longitude.ToInvariantString());
-            writer.WriteProperty("geo:lat", node.Latitude.ToInvariantString());
+            await writer.WritePropertyAsync("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
+            await writer.WritePropertyAsync("@type", "osm:Node", true, true);
+            await writer.WritePropertyAsync("geo:long", node.Longitude.ToInvariantString());
+            await writer.WritePropertyAsync("geo:lat", node.Latitude.ToInvariantString());
             
             if (node.Tags != null)
             {
-                writer.WriteTags(node.Tags, mapping);
+                await writer.WriteTagsAsync(node.Tags, mapping);
             }
 
-            writer.WriteClose();
+            await writer.WriteCloseAsync();
         }
 
-        internal static void WriteWay(this JsonWriter writer, Way way, Dictionary<string, TagMapperConfig> mapping)
+        internal static async Task WriteWayAsync(this JsonWriter writer, Way way, Dictionary<string, TagMapperConfig> mapping)
         {
             if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
             if (way == null) { throw new ArgumentNullException(nameof(way)); }
             
-            writer.WriteOpen();
+            await writer.WriteOpenAsync();
             
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{way.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Way", true, true);
+            await writer.WritePropertyAsync("@id", $"http://www.openstreetmap.org/way/{way.Id}", true, false);
+            await writer.WritePropertyAsync("@type", "osm:Way", true, true);
 
             if (way.Tags != null)
             {
-                writer.WriteTags(way.Tags, mapping);
+                await writer.WriteTagsAsync(way.Tags, mapping);
             }
             
-            writer.WritePropertyName("osm:hasNodes");
+            await writer.WritePropertyNameAsync("osm:hasNodes");
             
-            writer.WriteArrayOpen();
+            await writer.WriteArrayOpenAsync();
             if (way.Nodes != null)
             {
                 foreach (var node in way.Nodes)
                 {
-                    writer.WriteArrayValue($"http://www.openstreetmap.org/node/{node}", true, false);
+                    await writer.WriteArrayValueAsync($"http://www.openstreetmap.org/node/{node}", true, false);
                 }
             }
-            writer.WriteArrayClose();
+            await writer.WriteArrayCloseAsync();
             
-            writer.WriteClose();
+            await writer.WriteCloseAsync();
         }
 
-        internal static void WriteRelation(this JsonWriter writer, Relation relation, Dictionary<string, TagMapperConfig> mapping)
+        internal static async Task WriteRelationAsync(this JsonWriter writer, Relation relation, Dictionary<string, TagMapperConfig> mapping)
         {
             if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
             if (relation == null) { throw new ArgumentNullException(nameof(relation)); }
             
-            writer.WriteOpen();
+            await writer.WriteOpenAsync();
             
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{relation.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Relation", true, true);
+            await writer.WritePropertyAsync("@id", $"http://www.openstreetmap.org/relation/{relation.Id}", true, false);
+            await writer.WritePropertyAsync("@type", "osm:Relation", true, true);
 
             if (relation.Tags != null)
             {
-                writer.WriteTags(relation.Tags, mapping);
+                await writer.WriteTagsAsync(relation.Tags, mapping);
             }
             
-            writer.WritePropertyName("osm:hasMembers");
+            await writer.WritePropertyNameAsync("osm:hasMembers");
             
-            writer.WriteArrayOpen();
+            await writer.WriteArrayOpenAsync();
             if (relation.Members != null)
             {
                 foreach (var member in relation.Members)
                 {
-                    writer.WriteOpen();
+                    await writer.WriteOpenAsync();
 
                     switch (member.Type)
                     {
                         case OsmGeoType.Node:
-                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{member.Id}", true, false);
+                            await writer.WritePropertyAsync("@id", $"http://www.openstreetmap.org/node/{member.Id}", true, false);
                             break;
                         case OsmGeoType.Way:
-                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{member.Id}", true, false);
+                            await writer.WritePropertyAsync("@id", $"http://www.openstreetmap.org/way/{member.Id}", true, false);
                             break;
                         case OsmGeoType.Relation:
-                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{member.Id}", true, false);
+                            await writer.WritePropertyAsync("@id", $"http://www.openstreetmap.org/relation/{member.Id}", true, false);
                             break;
                     }
 
                     if (!string.IsNullOrWhiteSpace(member.Role))
                     {
-                        writer.WriteProperty("role", member.Role, true, false);
+                        await writer.WritePropertyAsync("role", member.Role, true, false);
                     }
                     
-                    writer.WriteClose();
+                    await writer.WriteCloseAsync();
                 }
             }
-            writer.WriteArrayClose();
+            await writer.WriteArrayCloseAsync();
             
-            writer.WriteClose();
+            await writer.WriteCloseAsync();
         }
 
-        internal static void WriteTags(this JsonWriter writer, TagsCollectionBase tags, Dictionary<string, TagMapperConfig> mapping)
+        internal static async Task WriteTagsAsync(this JsonWriter writer, TagsCollectionBase tags, Dictionary<string, TagMapperConfig> mapping)
         {
             var undefinedTags = new List<Tag>();
             foreach (var tag in tags)
             {
-                if (tag.Map(mapping, writer)) continue;
+                if (await tag.Map(mapping, writer)) continue;
                 
                 undefinedTags.Add(tag);
             }
             
-            writer.WritePropertyName("osm:hasTag");
-            writer.WriteArrayOpen();
+            await writer.WritePropertyNameAsync("osm:hasTag");
+            await writer.WriteArrayOpenAsync();
             foreach (var tag in undefinedTags)
             {
-                writer.WriteArrayValue($"{tag.Key}={tag.Value}", true, true);
+                await writer.WriteArrayValueAsync($"{tag.Key}={tag.Value}", true, true);
             }
-            writer.WriteArrayClose();
+            await writer.WriteArrayCloseAsync();
         }
     }
 }
