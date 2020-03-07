@@ -8,18 +8,34 @@ namespace RouteableTiles.IO.JsonLD.Semantics
     public static class TagMapper
     {
         /// <summary>
-        /// Returns true if there is a mapping for any of the tags in the given tags collection.
+        /// Returns true if there is a mapping for any of the tags in the given osm object.
         /// </summary>
-        /// <param name="tags">The tags collection.</param>
+        /// <param name="osmGeo">The osm object.</param>
+        /// <param name="keys">The keys.</param>
         /// <param name="mappings">The mappings.</param>
         /// <returns>True, if this tags collection is relevant.</returns>
-        public static bool IsRelevant(this TagsCollectionBase tags, Dictionary<string, TagMapperConfig> mappings)
+        public static bool IsRelevant(this OsmGeo osmGeo, Dictionary<string, TagMapperKey> keys, Dictionary<string, TagMapperConfig> mappings)
         {
-            if (tags == null) return false;
+            if (osmGeo?.Tags == null) return false;
             
-            foreach (var tag in tags)
+            foreach (var tag in osmGeo.Tags)
             {
-                if (mappings.TryGetValue(tag.Key, out var mapperConfig)) return true;
+                if (!keys.TryGetValue(tag.Key, out var key)) continue;
+
+                switch (osmGeo.Type)
+                {
+                    case OsmGeoType.Node:
+                        if (!key.Node) continue;
+                        break;
+                    case OsmGeoType.Way:
+                        if (!key.Way) continue;
+                        break;
+                    case OsmGeoType.Relation:
+                        if (!key.Relation) continue;
+                        break;
+                }
+
+                return true;
             }
 
             return false;

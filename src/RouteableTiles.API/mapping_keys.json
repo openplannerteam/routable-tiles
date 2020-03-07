@@ -1,0 +1,15 @@
+[
+  {
+    "key": "highway",
+    "Way": true
+  },
+  {
+    "key": "railway",
+    "Way": true
+  },
+  {
+    "key": "public_transport",
+    "Node": true,
+    "Way": true
+  }
+]

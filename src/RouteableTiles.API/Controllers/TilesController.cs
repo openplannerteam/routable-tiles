@@ -27,7 +27,7 @@ namespace RouteableTiles.API.Controllers
             if (db.Latest == null) return NotFound();
 
             var tile = new Tile(x, y, z);
-            var data = db.Latest.GetRouteableTile(tile, (ts) => ts.IsRelevant(JsonLDOutputFormatter.Mapping));
+            var data = db.Latest.GetRouteableTile(tile, (ts) => ts.IsRelevant(JsonLDOutputFormatter.MappingKeys, JsonLDOutputFormatter.Mapping));
             if (data == null) return NotFound();
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;

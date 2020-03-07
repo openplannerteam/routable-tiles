@@ -30,6 +30,11 @@ namespace RouteableTiles.API.Results
         /// </summary>
         internal static Dictionary<string, TagMapperConfig> Mapping { get; set; }
         
+        /// <summary>
+        /// Gets or sets the key mappings.
+        /// </summary>
+        internal static Dictionary<string, TagMapperKey> MappingKeys { get; set; }
+        
         protected override bool CanWriteType(Type type)
         {
             return typeof(TileResponse).IsAssignableFrom(type);

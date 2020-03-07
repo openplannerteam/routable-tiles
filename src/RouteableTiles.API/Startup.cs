@@ -80,6 +80,7 @@ namespace RouteableTiles.API
             DatabaseInstance.Default = osmDb;
             
             JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(this.Configuration["mapping"]);
+            JsonLDOutputFormatter.MappingKeys = TagMapperConfigParser.ParseKeys(this.Configuration["mapping_keys"]);
 
             app.UseMvc();
         }

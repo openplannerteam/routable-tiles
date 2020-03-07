@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OsmSharp;
 using OsmSharp.Logging;
@@ -9,6 +10,19 @@ namespace RouteableTiles.IO.JsonLD.Semantics
 {
     public static class TagMapperConfigParser
     {
+        public static Dictionary<string, TagMapperKey> ParseKeys(string file)
+        {
+            var mappings = new Dictionary<string, TagMapperKey>();
+            var parsed = JsonConvert.DeserializeObject<TagMapperKey[]>(System.IO.File.ReadAllText(file));
+
+            foreach (var p in parsed)
+            {
+                mappings[p.Key] = p;
+            }
+
+            return mappings;
+        }
+        
         public static Dictionary<string, TagMapperConfig> Parse(string file)
         {
             var mappings = new Dictionary<string, TagMapperConfig>();

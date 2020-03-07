@@ -11,7 +11,7 @@ namespace RouteableTiles.API
 {
     internal static class OsmDbExtensions
     {
-        internal static IEnumerable<OsmGeo> GetRouteableTile(this SnapshotDb db, Tile tile, Func<TagsCollectionBase, bool> isRelevant)
+        internal static IEnumerable<OsmGeo> GetRouteableTile(this SnapshotDb db, Tile tile, Func<OsmGeo, bool> isRelevant)
         {
             var nodes = db.GetNodesInTile(tile).Where(n => n.Longitude != null && 
                                                            n.Latitude != null && 
@@ -50,7 +50,7 @@ namespace RouteableTiles.API
                 }
 
                 if (first == int.MaxValue) continue;
-                if (!isRelevant(w.Tags)) continue;
+                if (!isRelevant(w)) continue;
 
                 waysToInclude[w.Id.Value] = w;
 
@@ -111,7 +111,7 @@ namespace RouteableTiles.API
             foreach (var r in relations)
             {
                 if (r.Members == null) continue;
-                if (!isRelevant(r.Tags)) continue;
+                if (!isRelevant(r)) continue;
 
                 var include = false;
                 foreach (var m in r.Members)
