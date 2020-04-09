@@ -29,6 +29,7 @@ namespace RouteableTiles.API.Controllers
             if (data == null) return NotFound();
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;
+            Response.Headers[HeaderNames.AccessControlAllowOrigin] = "*";
             
             return new TileResponse()
             {
