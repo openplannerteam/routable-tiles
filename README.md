@@ -29,7 +29,7 @@ Starting with an extract of OpenStreetMap data (in the `.osm.pbf` format, for ex
 
 #### Method B (in smaller steps)
 
-On a planet scale you can do this in three steps if it fails:
+On a planet scale, you can do this in three steps if the previous method fails:
 
 1. Extract ways: `osmosis --read-pbf planet-latest.osm.pbf --lp --tf accept-ways highway=* route=* --lp --write-pbf planet-1-highways.osm.pbf`
 2. Only keep used nodes: `osmosis --read-pbf planet-1-highways.osm.pbf --lp --used-node --lp --write-pbf planet-1-used-nodes.osm.pbf`
@@ -56,6 +56,8 @@ Using Docker, start the container like this, with `/path/to/db` pointing to the 
 The tiles should now be available at `http://localhost:5000/{z}/{x}/{y}`
 
 ## Compiling from source
+
+If you wish to compile the Docker images from the Git repository yourself, run:
 
 ```
 git submodule init
