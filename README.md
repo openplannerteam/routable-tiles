@@ -21,9 +21,13 @@ Or the Benelux:
 
 ### Preparing input data
 
-Starting with an extract of OpenStreetMap data (in the `.osm.pbf` format), first filter out all non-routing data using Osmosis:
+Starting with an extract of OpenStreetMap data (in the `.osm.pbf` format, for example from [Geofabrik downloads](http://download.geofabrik.de/)), first filter out all non-routing data using [Osmosis](https://wiki.openstreetmap.org/wiki/Osmosis).
+
+#### Method A (in a single step)
 
 `osmosis --read-pbf brussels-latest.osm.pbf --lp --tf accept-ways highway=* route=* --tf accept-relations type=route,restriction --used-node --lp --write-pbf brussels-routing.osm.pbf`
+
+#### Method B (in smaller steps)
 
 On a planet scale you can do this in three steps if it fails:
 
