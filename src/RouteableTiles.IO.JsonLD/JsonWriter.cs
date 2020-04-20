@@ -272,7 +272,7 @@ namespace RouteableTiles.IO.JsonLD
                 value = JsonTools.Escape(value);
             }
 
-            _writer.Write(value);
+            await _writer.WriteAsync(value);
             if (useQuotes) await _writer.WriteAsync('"');
             _statusStack.Push(Status.ArrayValueWritten);
         }

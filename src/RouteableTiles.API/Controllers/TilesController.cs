@@ -19,16 +19,16 @@ namespace RouteableTiles.API.Controllers
     public class TilesController : ControllerBase
     {
         [HttpGet("{z}/{x}/{y}/")]
-        public object Get(uint z, uint x, uint y)
+        public async Task<object> Get(uint z, uint x, uint y)
         {
             var db = DatabaseInstance.Default;
             
             if (db == null) return NotFound();
             if (db.Latest == null) return NotFound();
+            if (z != db.Latest.Zoom) return NotFound();
 
             var tile = new Tile(x, y, z);
-            var data = db.Latest.GetRouteableTile(tile, (ts) => ts.IsRelevant(JsonLDOutputFormatter.MappingKeys, JsonLDOutputFormatter.Mapping));
-            if (data == null) return NotFound();
+            var data = await db.Latest.GetRouteableTile((x, y), (ts) => ts.IsRelevant(JsonLDOutputFormatter.MappingKeys, JsonLDOutputFormatter.Mapping));
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;
             

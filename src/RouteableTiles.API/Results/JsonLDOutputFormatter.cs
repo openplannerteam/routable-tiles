@@ -42,13 +42,14 @@ namespace RouteableTiles.API.Results
 
         public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
-            var writer = new StreamWriter(context.HttpContext.Response.Body);
+            await using var writer = new StreamWriter(context.HttpContext.Response.Body);
 
             if (!(context.Object is TileResponse response))
             {
                 throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDOutputFormatter)}.");
             }
-        
+
+            writer.AutoFlush = false;
             await response.Data.WriteTo(writer, response.Tile, "https://tiles.openplanner.team/planet/", JsonLDOutputFormatter.Mapping);
         }
     }

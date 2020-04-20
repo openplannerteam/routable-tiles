@@ -7,6 +7,6 @@ namespace RouteableTiles.API
         /// <summary>
         /// Gets or sets the default database instance.
         /// </summary>
-        public static OsmDb Default { get; set; }
+        public static OsmTiledHistoryDb Default { get; set; }
     }
 }

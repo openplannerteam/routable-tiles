@@ -30,10 +30,10 @@ namespace RouteableTiles.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options =>
-                {
-                    options.OutputFormatters.Insert(0, new JsonLDOutputFormatter());
-                }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddControllers(options =>
+            {
+                options.OutputFormatters.Insert(0, new JsonLDOutputFormatter());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,13 +76,18 @@ namespace RouteableTiles.API
                 return next();
             });
             
-            if (!OsmDb.TryLoad(this.Configuration["db"], out var osmDb)) throw new Exception("Osm DB not found!");
+            app.UseRouting();
+            
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+            
+            if (!OsmTiledHistoryDb.TryLoad(this.Configuration["db"], out var osmDb)) throw new Exception("Osm DB not found!");
             DatabaseInstance.Default = osmDb;
             
             JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(this.Configuration["mapping"]);
             JsonLDOutputFormatter.MappingKeys = TagMapperConfigParser.ParseKeys(this.Configuration["mapping_keys"]);
-
-            app.UseMvc();
         }
     }
 }
