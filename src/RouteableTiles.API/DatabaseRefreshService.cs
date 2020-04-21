@@ -15,7 +15,7 @@ namespace RouteableTiles.API
             Log.Information($"{nameof(DatabaseRefreshService)} started!");
             
             _timer = new Timer(TryRefresh, null, TimeSpan.Zero, 
-                TimeSpan.FromSeconds(10));
+                TimeSpan.FromSeconds(1));
             
             return Task.CompletedTask;
         }
