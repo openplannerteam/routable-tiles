@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
@@ -19,8 +20,13 @@ namespace RouteableTiles.API
         {
             var logFile = Path.Combine("logs", "log-.txt");
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+//#if RELEASE
+//                .MinimumLevel.Information()
+//                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+//#else
+                .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+//#endif
                 .Enrich.FromLogContext()
                 .WriteTo.File(new JsonFormatter(), logFile, rollingInterval: RollingInterval.Day)
                 .WriteTo.Console()
@@ -29,7 +35,7 @@ namespace RouteableTiles.API
             try
             {
                 Log.Information("Starting web host...");
-                CreateWebHostBuilder(args).Build().Run();
+                CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {
@@ -40,9 +46,13 @@ namespace RouteableTiles.API
                 Log.CloseAndFlush();
             }
         }
-
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+        
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                        .UseSerilog() // <- Add this line
+                        .ConfigureWebHostDefaults(webBuilder =>
+                        {
+                            webBuilder.UseStartup<Startup>();
+                        });
     }
 }

@@ -11,6 +11,7 @@ using RouteableTiles.API.Results;
 using RouteableTiles.IO.JsonLD;
 using RouteableTiles.IO.JsonLD.Semantics;
 using RouteableTiles.IO.JsonLD.Tiles;
+using Serilog;
 
 namespace RouteableTiles.API.Controllers
 {
@@ -22,6 +23,14 @@ namespace RouteableTiles.API.Controllers
         public async Task<object> Get(uint z, uint x, uint y)
         {
             var db = DatabaseInstance.Default;
+
+            foreach (var header in this.Request.Headers)
+            {
+                Log.Information(header.ToString());
+            }
+            
+            Log.Information(this.Request.Path);
+            Log.Information(this.Request.Host.ToString());
             
             if (db == null) return NotFound();
             if (db.Latest == null) return NotFound();
