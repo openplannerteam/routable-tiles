@@ -4,16 +4,16 @@
 ############################################################
 
 # Set the base image to Ubuntu
-FROM microsoft/dotnet:2.1-aspnetcore-runtime
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1
 
 # File Author / Maintainer
-MAINTAINER Anyways BVBA
+MAINTAINER ANYWAYS BV
 
 # copy api assemblies and files
 RUN mkdir /var/app
 RUN mkdir /var/app/data
 RUN mkdir /var/app/logs
-COPY ./bin/Release/netcoreapp2.1/linux-x64/publish /var/app
+COPY ./bin/release/netcoreapp3.1/publish /var/app
 COPY appsettings.Docker.json /var/app/appsettings.json
 
 # couple data folder data volume.
