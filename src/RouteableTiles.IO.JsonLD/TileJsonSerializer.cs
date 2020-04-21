@@ -24,6 +24,8 @@ namespace RouteableTiles.IO.JsonLD
         /// <param name="mapping">The mapping.</param>
         public static async Task WriteTo(this IEnumerable<OsmGeo> data, TextWriter writer, Tile tile, string baseUrl, Dictionary<string, TagMapperConfig> mapping)
         {
+            if (!baseUrl.EndsWith("/")) baseUrl += '/';
+            
             var jsonWriter = new JsonWriter(writer);
             await jsonWriter.WriteOpenAsync();
             
@@ -117,7 +119,7 @@ namespace RouteableTiles.IO.JsonLD
             await writer.WritePropertyNameAsync("hydra:search");
             await writer.WriteOpenAsync();
             await writer.WritePropertyAsync("@type", "hydra:IriTemplate", true);
-            await writer.WritePropertyAsync("hydra:template", $"{baseUrl}" + "/14/{x}/{y}", true);
+            await writer.WritePropertyAsync("hydra:template", $"{baseUrl}" + "14/{x}/{y}", true);
             await writer.WritePropertyAsync("hydra:variableRepresentation", "hydra:BasicRepresentation", true);
             
             await writer.WritePropertyNameAsync("hydra:mapping");

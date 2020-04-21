@@ -8,7 +8,8 @@ namespace RouteableTiles.API
 {
     internal static class OsmDbExtensions
     {
-        internal static async Task<IEnumerable<OsmGeo>> GetRouteableTile(this OsmTiledDbBase db, (uint x, uint y) tile, Func<OsmGeo, bool> isRelevant)
+        internal static async Task<IEnumerable<OsmGeo>> GetRouteableTile(this OsmTiledDbBase db, (uint x, uint y) tile, 
+            Func<OsmGeo, bool> isRelevant)
         {
             var result = new List<OsmGeo>();
             

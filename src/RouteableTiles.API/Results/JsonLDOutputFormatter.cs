@@ -42,6 +42,8 @@ namespace RouteableTiles.API.Results
 
         public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
+            var baseUrl = context.HttpContext.Request.BasePath();
+            
             await using var writer = new StreamWriter(context.HttpContext.Response.Body);
 
             if (!(context.Object is TileResponse response))
@@ -50,7 +52,7 @@ namespace RouteableTiles.API.Results
             }
 
             writer.AutoFlush = false;
-            await response.Data.WriteTo(writer, response.Tile, "https://tiles.openplanner.team/planet/", JsonLDOutputFormatter.Mapping);
+            await response.Data.WriteTo(writer, response.Tile, baseUrl, JsonLDOutputFormatter.Mapping);
         }
     }
 }
