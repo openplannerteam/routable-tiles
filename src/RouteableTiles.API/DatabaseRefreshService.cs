@@ -19,14 +19,29 @@ namespace RouteableTiles.API
             
             return Task.CompletedTask;
         }
+
+        private bool _isReloading = false;
         
         private void TryRefresh(object state)
         {
             if (DatabaseInstance.Default == null) return;
-
-            if (DatabaseInstance.Default.TryReload())
+            if (_isReloading) return;
+            
+            try
             {
-                Log.Information("Database reloaded.");
+                _isReloading = true;
+                if (DatabaseInstance.Default.TryReload())
+                {
+                    Log.Information("Database reloaded.");
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning("Reloading failed");
+            }
+            finally
+            {
+                _isReloading = false;
             }
         }
 
