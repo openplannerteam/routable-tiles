@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using OsmSharp;
+using OsmSharp.Db;
 using RouteableTiles.API.Results;
 using RouteableTiles.IO.JsonLD;
 using RouteableTiles.IO.JsonLD.Semantics;
