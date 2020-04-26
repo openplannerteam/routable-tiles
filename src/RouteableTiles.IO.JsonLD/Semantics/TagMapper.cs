@@ -21,6 +21,9 @@ namespace RouteableTiles.IO.JsonLD.Semantics
             foreach (var tag in osmGeo.Tags)
             {
                 if (!keys.TryGetValue(tag.Key, out var key)) continue;
+                
+                if (!string.IsNullOrWhiteSpace(key.Value) &&
+                    key.Value != tag.Value) continue;
 
                 switch (osmGeo.Type)
                 {

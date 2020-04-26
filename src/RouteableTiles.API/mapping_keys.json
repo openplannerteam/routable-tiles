@@ -11,5 +11,18 @@
     "key": "public_transport",
     "Node": true,
     "Way": true
+  },
+  {
+    "key": "route",
+    "Relation": true
+  },
+  {
+    "key": "route",
+    "Relation": true
+  },
+  {
+    "key": "type",
+    "value": "restriction",
+    "Relation": true
   }
 ]

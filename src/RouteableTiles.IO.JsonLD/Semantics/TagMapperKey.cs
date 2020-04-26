@@ -4,6 +4,8 @@ namespace RouteableTiles.IO.JsonLD.Semantics
     {
         public string Key { get; set; }
         
+        public string Value { get; set; }
+        
         public bool Node { get; set; }
         
         public bool Way { get; set; }
