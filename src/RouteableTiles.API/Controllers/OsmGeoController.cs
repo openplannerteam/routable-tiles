@@ -1,6 +1,8 @@
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OsmSharp;
+using OsmSharp.Db.Tiled.OsmTiled;
 
 namespace RouteableTiles.API.Controllers
 {
@@ -9,22 +11,22 @@ namespace RouteableTiles.API.Controllers
     public class OsmGeoController
     {
         [HttpGet("node/{id}/tiles")]
-        public async Task<object> GetNode(long id)
+        public Node GetNode(long id)
         {
             var db = DatabaseInstance.Default;
 
-            var node = db.Latest.Get(OsmGeoType.Node, id);
-
+            var osmGeo = db.Latest.Get(OsmGeoType.Node, id);
+            if (!(osmGeo is Node node)) throw new InvalidDataException("Expected a node when a node was requested.");
             return node;
         }
         
         [HttpGet("way/{id}")]
-        public async Task<object> GetWay(long id)
+        public Way GetWay(long id)
         {
             var db = DatabaseInstance.Default;
 
-            var way = db.Latest.Get(OsmGeoType.Way, id);
-
+            var osmGeo = db.Latest.Get(OsmGeoType.Way, id);
+            if (!(osmGeo is Way way)) throw new InvalidDataException("Expected a way when a way was requested.");
             return way;
         }
         
@@ -33,8 +35,8 @@ namespace RouteableTiles.API.Controllers
         {
             var db = DatabaseInstance.Default;
 
-            var relation = db.Latest.Get(OsmGeoType.Relation, id);
-
+            var osmGeo = db.Latest.Get(OsmGeoType.Relation, id);
+            if (!(osmGeo is Relation relation)) throw new InvalidDataException("Expected a relation when a relation was requested.");
             return relation;
         }
     }

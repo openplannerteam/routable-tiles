@@ -21,13 +21,13 @@ namespace RouteableTiles.API
         {
             var logFile = Path.Combine("logs", "log-.txt");
             Log.Logger = new LoggerConfiguration()
-//#if RELEASE
-//                .MinimumLevel.Information()
-//                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-//#else
+#if RELEASE
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+#else
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-//#endif
+#endif
                 .Enrich.FromLogContext()
                 .WriteTo.File(new JsonFormatter(), logFile, rollingInterval: RollingInterval.Day)
                 .WriteTo.Console()

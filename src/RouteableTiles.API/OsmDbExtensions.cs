@@ -17,8 +17,8 @@ namespace RouteableTiles.API
             var nodesToInclude = new SortedDictionary<long, Node>();
             var waysToInclude = new SortedDictionary<long, Way>();
             
-            var osmGeos = await db.Get(tile);
-            foreach (var osmGeo in osmGeos)
+            var osmGeos = db.Get(new [] { tile });
+            foreach (var (osmGeo, _) in osmGeos)
             {
                 if (osmGeo is Node node)
                 {
@@ -64,7 +64,7 @@ namespace RouteableTiles.API
                         if (nodesToInclude.ContainsKey(nodeId)) continue;
                     
                         // not not yet there, get it.
-                        wayNode = await db.Get(OsmGeoType.Node, nodeId) as Node;
+                        wayNode = db.Get(OsmGeoType.Node, nodeId) as Node;
                         if (wayNode != null) nodesToInclude[nodeId] = wayNode;
                     }
                 }

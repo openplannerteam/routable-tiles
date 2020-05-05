@@ -30,7 +30,7 @@ namespace RouteableTiles.API
             try
             {
                 _isReloading = true;
-                if (DatabaseInstance.Default.TryReload())
+                if (DatabaseInstance.Default.TryReloadLatest())
                 {
                     Log.Information("Database reloaded.");
                 }
