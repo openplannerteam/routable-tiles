@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using OsmSharp.Logging;
@@ -85,10 +86,10 @@ namespace RouteableTiles.CLI
             var baseUrl = config["url"];
 
             var lockFile = new FileInfo(Path.Combine(dbPath, "replication.lock"));
-            // if (LockHelper.IsLocked(lockFile.FullName))
-            // {
-            //     return;
-            // }
+            if (LockHelper.IsLocked(lockFile.FullName))
+            {
+                return;
+            }
 
             try
             {
@@ -98,12 +99,18 @@ namespace RouteableTiles.CLI
                 var (db, modifiedTiles) = await Db.BuildOrUpdate(planetFile, dbPath, true);
                 
                 // build tiles.
+                var tileCount = 0;
+                Log.Verbose($"Writing tiles...");
                 foreach (var tile in modifiedTiles)
                 {
-                    Log.Verbose($"Writing tile {tile}...");
-                    var data = db.GetRouteableTile(tile, (ts) => 
-                        ts.IsRelevant(TagMapper.DefaultMappingKeys, TagMapper.DefaultMappingConfigs));
                     
+                    var data = db.GetRouteableTile(tile, (ts) =>
+                        ts.IsRelevant(TagMapper.DefaultMappingKeys, TagMapper.DefaultMappingConfigs));
+                    if (!data.Any()) continue;
+                    
+                    tileCount++;
+                    if (tileCount % 100 == 0) Log.Verbose($"{tileCount} tiles written/updated...");
+
                     var tilePath = Path.Combine(tilesPath, db.Zoom.ToString());
                     if (!Directory.Exists(tilePath)) Directory.CreateDirectory(tilePath);
 
@@ -114,8 +121,10 @@ namespace RouteableTiles.CLI
 
                     await using var stream = File.Open(tilePath, FileMode.Create);
                     await using var writer = new StreamWriter(stream);
-                    await data.WriteTo(writer, new Tile(tile.x, tile.y, db.Zoom), baseUrl, TagMapper.DefaultMappingConfigs);
+                    await data.WriteTo(writer, new Tile(tile.x, tile.y, db.Zoom), baseUrl,
+                        TagMapper.DefaultMappingConfigs);
                 }
+                Log.Verbose($"Done writing tiles: {tileCount} tiles written/updated!");
             }
             catch (Exception e)
             {

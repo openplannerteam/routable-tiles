@@ -14,7 +14,8 @@ namespace RouteableTiles.CLI
 {
     internal static class Db
     {
-        public static async Task<(OsmTiledDbBase db, IEnumerable<(uint x, uint y)> updatedTiles)> BuildOrUpdate(string osmPbfFile, string dbPath,
+        public static async Task<(OsmTiledDbBase db, IEnumerable<(uint x, uint y)> updatedTiles)> BuildOrUpdate(
+            string osmPbfFile, string dbPath,
             bool update = false)
         {
             // try loading the db, if it doesn't exist build it.
@@ -88,12 +89,8 @@ namespace RouteableTiles.CLI
             }
 
             // squash changes.
-            var changeSet = changeSets[0];
-            if (changeSets.Count > 1)
-            {
-                Log.Verbose($"Squashing changes...");
-                changeSet = changeSets.Squash();
-            }
+            Log.Verbose($"Squashing changes...");
+            var changeSet = changeSets.Squash();
 
             // build meta data.
             var metaData = new List<(string key, string value)>
@@ -106,7 +103,7 @@ namespace RouteableTiles.CLI
             Log.Information($"Applying changes...");
             db.ApplyDiff(changeSet, latestStatus.EndTimestamp, metaData);
             Log.Information($"Took {new TimeSpan(DateTime.Now.Ticks - ticks).TotalSeconds}s");
-            
+
             return (db.Latest, db.Latest.GetTiles(true));
         }
     }

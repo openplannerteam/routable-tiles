@@ -26,7 +26,7 @@ namespace RouteableTiles.IO.JsonLD
                     {
                         nodesToInclude[node.Id.Value] = node;
                     }
-                    nodesInTile[node.Id.Value] = node;
+                    nodesInTile.Add(node.Id.Value, node);
                 }
                 else if (osmGeo is Way w)
                 {
