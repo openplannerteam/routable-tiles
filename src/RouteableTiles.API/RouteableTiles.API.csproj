@@ -11,7 +11,7 @@
         <PackageReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="NSwag.AspNetCore" Version="12.0.9" />
         <PackageReference Include="NSwag.Core" Version="12.0.9" />
-        <PackageReference Include="OsmSharp.Db.Tiled" Version="0.0.29-alpha" />
+        <PackageReference Include="OsmSharp.Db.Tiled" Version="0.0.30-alpha" />
         <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
         <PackageReference Include="Serilog.Extensions.Hosting" Version="2.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
@@ -19,17 +19,5 @@
 
     <ItemGroup>
       <ProjectReference Include="..\RouteableTiles.IO.JsonLD\RouteableTiles.IO.JsonLD.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="..\..\ontology\mapping_config.json">
-        <Link>mapping_config.json</Link>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <Content Update="mapping_keys.json">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
     </ItemGroup>
 </Project>

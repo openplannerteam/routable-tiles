@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using OsmSharp;
 using OsmSharp.Db.Tiled.OsmTiled;
 using RouteableTiles.IO.JsonLD;
 
-namespace RouteableTiles.API
+namespace RouteableTiles.CLI
 {
     internal static class OsmDbExtensions
     {

@@ -12,22 +12,31 @@ namespace RouteableTiles.IO.JsonLD.Semantics
     {
         public static Dictionary<string, TagMapperKey> ParseKeys(string file)
         {
-            var mappings = new Dictionary<string, TagMapperKey>();
-            var parsed = JsonConvert.DeserializeObject<TagMapperKey[]>(System.IO.File.ReadAllText(file));
+            return ParseKeysFromJson(System.IO.File.ReadAllText(file));
+        }
 
+        public static Dictionary<string, TagMapperKey> ParseKeysFromJson(string json)
+        {
+            var parsed = JsonConvert.DeserializeObject<TagMapperKey[]>(json);
+
+            var mappings = new Dictionary<string, TagMapperKey>();
             foreach (var p in parsed)
             {
                 mappings[p.Key] = p;
             }
-
             return mappings;
         }
-        
+
         public static Dictionary<string, TagMapperConfig> Parse(string file)
+        {
+            return ParseFromJson(System.IO.File.ReadAllText(file));
+        }
+
+        public static Dictionary<string, TagMapperConfig> ParseFromJson(string json)
         {
             var mappings = new Dictionary<string, TagMapperConfig>();
             
-            var parsed = JArray.Parse(System.IO.File.ReadAllText(file));
+            var parsed = JArray.Parse(json);
 
             foreach (var item in parsed)
             {

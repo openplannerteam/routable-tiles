@@ -82,12 +82,16 @@ namespace RouteableTiles.API
             {
                 endpoints.MapControllers();
             });
+
+            // parse mappings.
+            var mapping = this.Configuration["mapping"];
+            if (!string.IsNullOrWhiteSpace(mapping)) JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(mapping);
+            var mappingKeys = this.Configuration["mapping_keys"];
+            if (!string.IsNullOrWhiteSpace(mappingKeys)) JsonLDOutputFormatter.MappingKeys = TagMapperConfigParser.ParseKeys(mappingKeys);
             
-            if (!OsmTiledHistoryDb.TryLoad(this.Configuration["db"], out var osmDb)) throw new Exception("Osm DB not found!");
+            // load db.
+            if (!OsmTiledHistoryDb.TryLoad(this.Configuration["db"], out var osmDb) || osmDb == null) throw new Exception("Osm DB not found!");
             DatabaseInstance.Default = osmDb;
-            
-            JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(this.Configuration["mapping"]);
-            JsonLDOutputFormatter.MappingKeys = TagMapperConfigParser.ParseKeys(this.Configuration["mapping_keys"]);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace RouteableTiles.API.Controllers
             if (z != db.Latest.Zoom) return NotFound();
 
             var tile = new Tile(x, y, z);
-            var data = await db.Latest.GetRouteableTile((x, y), (ts) => ts.IsRelevant(JsonLDOutputFormatter.MappingKeys, JsonLDOutputFormatter.Mapping));
+            var data = db.Latest.GetRouteableTile((x, y), (ts) => ts.IsRelevant(JsonLDOutputFormatter.MappingKeys, JsonLDOutputFormatter.Mapping));
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60 * 60;
             

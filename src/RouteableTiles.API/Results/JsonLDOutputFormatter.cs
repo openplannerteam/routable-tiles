@@ -28,12 +28,12 @@ namespace RouteableTiles.API.Results
         /// <summary>
         /// Gets or sets the mappings.
         /// </summary>
-        internal static Dictionary<string, TagMapperConfig> Mapping { get; set; }
+        internal static Dictionary<string, TagMapperConfig>? Mapping { get; set; }
         
         /// <summary>
         /// Gets or sets the key mappings.
         /// </summary>
-        internal static Dictionary<string, TagMapperKey> MappingKeys { get; set; }
+        internal static Dictionary<string, TagMapperKey>? MappingKeys { get; set; }
         
         protected override bool CanWriteType(Type type)
         {
@@ -52,7 +52,7 @@ namespace RouteableTiles.API.Results
             }
 
             writer.AutoFlush = false;
-            await response.Data.WriteTo(writer, response.Tile, baseUrl, JsonLDOutputFormatter.Mapping);
+            await response.Data.WriteTo(writer, response.Tile, baseUrl, Mapping ?? TagMapper.DefaultMappingConfigs);
         }
     }
 }

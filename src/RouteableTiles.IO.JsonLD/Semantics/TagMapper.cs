@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using OsmSharp;
 using OsmSharp.Tags;
@@ -7,6 +10,34 @@ namespace RouteableTiles.IO.JsonLD.Semantics
 {
     public static class TagMapper
     {
+        private static readonly Lazy<Dictionary<string, TagMapperConfig>> LazyMappingConfigs = new Lazy<Dictionary<string, TagMapperConfig>>(
+            () =>
+            {
+                using var embeddedStream = Assembly.GetAssembly(typeof(TagMapper))
+                    .GetManifestResourceStream("RouteableTiles.IO.JsonLD.mapping_config.json");
+                using var streamReader = new StreamReader(embeddedStream);
+                return TagMapperConfigParser.ParseFromJson(streamReader.ReadToEnd());
+            });
+
+        /// <summary>
+        /// Gets the default embedded mapping configs.
+        /// </summary>
+        public static Dictionary<string, TagMapperConfig> DefaultMappingConfigs => LazyMappingConfigs.Value;
+        
+        private static readonly Lazy<Dictionary<string, TagMapperKey>> LazyMappingKeys = new Lazy<Dictionary<string, TagMapperKey>>(
+            () =>
+            {
+                using var embeddedStream = Assembly.GetAssembly(typeof(TagMapper))
+                    .GetManifestResourceStream("RouteableTiles.IO.JsonLD.mapping_keys.json");
+                using var streamReader = new StreamReader(embeddedStream);
+                return TagMapperConfigParser.ParseKeysFromJson(streamReader.ReadToEnd());
+            });
+
+        /// <summary>
+        /// Gets the default embedded mapping keys.
+        /// </summary>
+        public static Dictionary<string, TagMapperKey> DefaultMappingKeys => LazyMappingKeys.Value;
+        
         /// <summary>
         /// Returns true if there is a mapping for any of the tags in the given osm object.
         /// </summary>
