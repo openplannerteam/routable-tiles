@@ -4,9 +4,9 @@ using RouteableTiles.IO.JsonLD.Tiles;
 
 namespace RouteableTiles.API.Responses
 {
-    internal class JsonLDTileResponse
+    internal class OsmTileResponse
     {
-        public JsonLDTileResponse(IEnumerable<OsmGeo> data, Tile tile)
+        public OsmTileResponse(IEnumerable<OsmGeo> data, Tile tile)
         {
             this.Data = data;
             this.Tile = tile;

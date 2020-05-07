@@ -14,6 +14,8 @@ namespace RouteableTiles.API.Responses
     {
         public JsonLDTileResponseFormatter()
         {
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/html"));
+            SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/ld+json"));
             
             SupportedEncodings.Add(Encoding.UTF8);
@@ -32,7 +34,7 @@ namespace RouteableTiles.API.Responses
         
         protected override bool CanWriteType(Type type)
         {
-            return typeof(JsonLDTileResponse).IsAssignableFrom(type);
+            return typeof(OsmTileResponse).IsAssignableFrom(type);
         }
 
         public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
@@ -41,11 +43,13 @@ namespace RouteableTiles.API.Responses
             
             await using var writer = new StreamWriter(context.HttpContext.Response.Body);
 
-            if (!(context.Object is JsonLDTileResponse response))
+            if (!(context.Object is OsmTileResponse response))
             {
                 throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDTileResponseFormatter)}.");
             }
 
+            context.HttpContext.Response.Headers[HeaderNames.ContentType] = "application/ld+json";
+            
             writer.AutoFlush = false;
             await response.Data.WriteTo(writer, response.Tile, baseUrl, Mapping ?? TagMapper.DefaultMappingConfigs);
         }

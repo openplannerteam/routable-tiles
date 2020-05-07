@@ -13,7 +13,7 @@ namespace RouteableTiles.API.Controllers
     public class TilesController : ControllerBase
     {
         [HttpGet("{z}/{x}/{y}/")]
-        public async Task<object> GetJsonLD(uint z, uint x, uint y)
+        public object GetJsonLD(uint z, uint x, uint y)
         {
             var db = DatabaseInstance.Default;
             
@@ -28,7 +28,7 @@ namespace RouteableTiles.API.Controllers
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60;
 
-            return new JsonLDTileResponse(data, tile);
+            return new OsmTileResponse(data, tile);
         }
 
         [HttpGet("{z}/{x}/{y}.osm")]
@@ -45,7 +45,11 @@ namespace RouteableTiles.API.Controllers
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60;
 
-            return new OsmXmlTileResponse(data, tile);
+            // TODO: handle this properly, what do we do when application/xml was not requested?
+            // force an xml response.
+            Request.Headers[HeaderNames.Accept] = "application/xml";
+
+            return new OsmTileResponse(data, tile);
         }
     }
 }

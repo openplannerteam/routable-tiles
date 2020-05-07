@@ -5,14 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 using OsmSharp.Streams;
-using RouteableTiles.IO.JsonLD;
-using RouteableTiles.IO.JsonLD.Semantics;
 
 namespace RouteableTiles.API.Responses
 {
-    internal class OsmXmlTileResponseFormatter : TextOutputFormatter
+    internal class OsmXmlResponseFormatter : TextOutputFormatter
     {
-        public OsmXmlTileResponseFormatter()
+        public OsmXmlResponseFormatter()
         {
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
             
@@ -22,19 +20,19 @@ namespace RouteableTiles.API.Responses
         
         protected override bool CanWriteType(Type type)
         {
-            return typeof(OsmXmlTileResponse).IsAssignableFrom(type);
+            return typeof(OsmTileResponse).IsAssignableFrom(type);
         }
 
         public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
-            if (!(context.Object is OsmXmlTileResponse response))
+            if (!(context.Object is OsmTileResponse response))
             {
-                throw new InvalidOperationException($"The given object cannot be written by {nameof(OsmXmlTileResponseFormatter)}.");
+                throw new InvalidOperationException($"The given object cannot be written by {nameof(OsmXmlResponseFormatter)}.");
             }
             
             // copy to buffer first, stream target doesn't allow async writing and sync writes are not allowed.
             var memoryStream = new MemoryStream();
-            var xmlStreamTarget = new OsmSharp.Streams.XmlOsmStreamTarget(memoryStream);
+            var xmlStreamTarget = new XmlOsmStreamTarget(memoryStream);
             xmlStreamTarget.RegisterSource(response.Data);
             xmlStreamTarget.Pull();
             xmlStreamTarget.Flush();
