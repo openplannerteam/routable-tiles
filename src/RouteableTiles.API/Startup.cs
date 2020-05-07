@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OsmSharp.Db.Tiled;
-using RouteableTiles.API.Results;
+using RouteableTiles.API.Responses;
 using RouteableTiles.IO.JsonLD.Semantics;
 using Serilog;
 
@@ -32,7 +27,8 @@ namespace RouteableTiles.API
         {
             services.AddControllers(options =>
             {
-                options.OutputFormatters.Insert(0, new JsonLDOutputFormatter());
+                options.OutputFormatters.Insert(0, new JsonLDTileResponseFormatter());
+                options.OutputFormatters.Insert(0, new OsmXmlTileResponseFormatter());
             });
         }
 
@@ -85,9 +81,9 @@ namespace RouteableTiles.API
 
             // parse mappings.
             var mapping = this.Configuration["mapping"];
-            if (!string.IsNullOrWhiteSpace(mapping)) JsonLDOutputFormatter.Mapping = TagMapperConfigParser.Parse(mapping);
+            if (!string.IsNullOrWhiteSpace(mapping)) JsonLDTileResponseFormatter.Mapping = TagMapperConfigParser.Parse(mapping);
             var mappingKeys = this.Configuration["mapping_keys"];
-            if (!string.IsNullOrWhiteSpace(mappingKeys)) JsonLDOutputFormatter.MappingKeys = TagMapperConfigParser.ParseKeys(mappingKeys);
+            if (!string.IsNullOrWhiteSpace(mappingKeys)) JsonLDTileResponseFormatter.MappingKeys = TagMapperConfigParser.ParseKeys(mappingKeys);
             
             // load db.
             if (!OsmTiledHistoryDb.TryLoad(this.Configuration["db"], out var osmDb) || osmDb == null) throw new Exception("Osm DB not found!");

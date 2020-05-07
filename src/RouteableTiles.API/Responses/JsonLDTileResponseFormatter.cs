@@ -1,23 +1,18 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
-using OsmSharp;
-using RouteableTiles.API.Controllers;
 using RouteableTiles.IO.JsonLD;
 using RouteableTiles.IO.JsonLD.Semantics;
 
-namespace RouteableTiles.API.Results
+namespace RouteableTiles.API.Responses
 {
-    internal class JsonLDOutputFormatter : TextOutputFormatter
+    internal class JsonLDTileResponseFormatter : TextOutputFormatter
     {
-        public JsonLDOutputFormatter()
+        public JsonLDTileResponseFormatter()
         {
             SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/ld+json"));
             
@@ -37,7 +32,7 @@ namespace RouteableTiles.API.Results
         
         protected override bool CanWriteType(Type type)
         {
-            return typeof(TileResponse).IsAssignableFrom(type);
+            return typeof(JsonLDTileResponse).IsAssignableFrom(type);
         }
 
         public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
@@ -46,9 +41,9 @@ namespace RouteableTiles.API.Results
             
             await using var writer = new StreamWriter(context.HttpContext.Response.Body);
 
-            if (!(context.Object is TileResponse response))
+            if (!(context.Object is JsonLDTileResponse response))
             {
-                throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDOutputFormatter)}.");
+                throw new InvalidOperationException($"The given object cannot be written by {nameof(JsonLDTileResponseFormatter)}.");
             }
 
             writer.AutoFlush = false;

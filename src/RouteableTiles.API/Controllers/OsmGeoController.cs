@@ -10,7 +10,7 @@ namespace RouteableTiles.API.Controllers
     [ApiController]
     public class OsmGeoController
     {
-        [HttpGet("node/{id}/tiles")]
+        [HttpGet("node/{id}")]
         public Node GetNode(long id)
         {
             var db = DatabaseInstance.Default;
