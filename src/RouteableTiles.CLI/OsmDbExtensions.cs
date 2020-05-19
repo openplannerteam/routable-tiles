@@ -13,7 +13,7 @@ namespace RouteableTiles.CLI
             Func<OsmGeo, bool> isRelevant, byte[]? buffer = null)
         {
             return db.Get(new[] {tile}).Select(x => x.osmGeo).GetRouteableTile(
-                isRelevant, key => db.Get(key, buffer)?.osmGeo);
+                isRelevant, keys => db.Get(keys, buffer).Select(x => x.osmGeo));
         }
     }
 }

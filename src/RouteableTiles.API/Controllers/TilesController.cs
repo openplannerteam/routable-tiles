@@ -1,10 +1,8 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using RouteableTiles.API.Responses;
 using RouteableTiles.IO.JsonLD.Semantics;
 using RouteableTiles.IO.JsonLD.Tiles;
-using OsmSharp.Db.Tiled.OsmTiled;
 
 namespace RouteableTiles.API.Controllers
 {
@@ -41,7 +39,9 @@ namespace RouteableTiles.API.Controllers
             if (z != db.Latest.Zoom) return NotFound();
 
             var tile = new Tile(x, y, z);
-            var data = db.Latest.Get((x, y), true, false);
+            var data = db.Latest.GetRouteableTile((x, y), (ts) => ts.IsRelevant(
+                JsonLDTileResponseFormatter.MappingKeys ?? TagMapper.DefaultMappingKeys, 
+                JsonLDTileResponseFormatter.Mapping ?? TagMapper.DefaultMappingConfigs));
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60;
 

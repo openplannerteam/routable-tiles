@@ -8,11 +8,12 @@ namespace RouteableTiles.IO.JsonLD
     public static class OsmGeoExtensions
     {
         public static IEnumerable<OsmGeo> GetRouteableTile(this IEnumerable<OsmGeo> tileData,
-            Func<OsmGeo, bool>? isRelevant = null, Func<OsmGeoKey, OsmGeo?>? getOsmGeo = null)
+            Func<OsmGeo, bool>? isRelevant = null, Func<IEnumerable<OsmGeoKey>, IEnumerable<OsmGeo>>? getOsmGeo = null)
         {
             var result = new List<OsmGeo>();
             
             var nodesInTile = new Dictionary<long, Node>();
+            var nodesToQuery = new HashSet<OsmGeoKey>();
             var nodesToInclude = new SortedDictionary<long, Node>();
             var waysToInclude = new SortedDictionary<long, Way>();
             
@@ -63,18 +64,27 @@ namespace RouteableTiles.IO.JsonLD
                             continue;
                         }
 
-                        // node is not in the tile, get it from the db if it's not included already..
-                        if (nodesToInclude.ContainsKey(nodeId)) continue;
-                    
-                        // not not yet there, get it.
-                        wayNode = getOsmGeo?.Invoke(new OsmGeoKey(OsmGeoType.Node, nodeId)) as Node;
-                        if (wayNode != null) nodesToInclude[nodeId] = wayNode;
+                        // node is not in the tile, get it from the db if it's not included already.
+                        nodesToQuery.Add(new OsmGeoKey(OsmGeoType.Node, nodeId));
                     }
                 }
                 else
                 {
                     if (result.Count == 0)
                     {
+                        // get all the nodes not in the tiles but required.
+                        var otherNodes = getOsmGeo?.Invoke(nodesToQuery);
+                        if (otherNodes != null)
+                        {
+                            foreach (var otherOsmGeo in otherNodes)
+                            {
+                                if (otherOsmGeo is Node otherNode)
+                                {
+                                    nodesToInclude.Add(otherNode.Id.Value, otherNode);
+                                }
+                            }
+                        }
+
                         // return all the nodes.
                         result.AddRange(nodesToInclude.Values);
 

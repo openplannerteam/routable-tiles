@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using OsmSharp;
 using OsmSharp.Db.Tiled.OsmTiled;
 using RouteableTiles.IO.JsonLD;
@@ -14,7 +13,7 @@ namespace RouteableTiles.API
             Func<OsmGeo, bool> isRelevant, byte[]? buffer = null)
         {
             return db.Get(new[] {tile}).Select(x => x.osmGeo).GetRouteableTile(
-                isRelevant, key => db.Get(key, buffer)?.osmGeo);
+                isRelevant, keys => db.Get(keys, buffer).Select(x => x.osmGeo));
         }
     }
 }
