@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using OsmSharp;
-using OsmSharp.Logging;
 
 namespace RouteableTiles.IO.JsonLD
 {
