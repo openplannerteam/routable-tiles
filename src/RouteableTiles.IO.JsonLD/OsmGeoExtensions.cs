@@ -110,10 +110,11 @@ namespace RouteableTiles.IO.JsonLD
             {
                 foreach (var otherOsmGeo in otherNodes)
                 {
-                    if (otherOsmGeo is Node otherNode)
-                    {
-                        result.Add(otherNode);
-                    }
+                    if (!(otherOsmGeo is Node otherNode)) continue;
+                    if (otherNode.Id == null) continue;
+                        
+                    nodesToInclude.Add(otherNode.Id.Value, otherNode);
+                    result.Add(otherNode);
                 }
             }
 
