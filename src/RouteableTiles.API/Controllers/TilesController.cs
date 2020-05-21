@@ -79,7 +79,7 @@ namespace RouteableTiles.API.Controllers
             
             var baseUrl = $"{this.Request.HttpContext.Request.BasePath()}/{z}/{x}/{y}/";
             
-            Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + 60;
+            Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + (int)TimeSpan.FromDays(1).TotalSeconds;
             Response.Headers["Memento-DateTime"] = utcDate.ToString("ddd, dd MMM yyyy HH:mm:ss G\\MT");
             Response.Headers["Link"] = $"<{baseUrl}>; rel=\"original\"";
 
