@@ -76,8 +76,10 @@ namespace RouteableTiles.API.Controllers
             var data = instance.GetRouteableTile((x, y), (ts) => ts.IsRelevant(
                 JsonLDTileResponseFormatter.MappingKeys ?? TagMapper.DefaultMappingKeys, 
                 JsonLDTileResponseFormatter.Mapping ?? TagMapper.DefaultMappingConfigs));
-            
-            var baseUrl = $"{this.Request.HttpContext.Request.BasePath()}/{z}/{x}/{y}/";
+
+            var baseUrl = this.Request.HttpContext.Request.BasePath();
+            if (!baseUrl.EndsWith("/")) baseUrl = baseUrl + "/";
+            baseUrl = $"{baseUrl}{z}/{x}/{y}/";
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + (int)TimeSpan.FromDays(1).TotalSeconds;
             Response.Headers["Memento-DateTime"] = utcDate.ToString("ddd, dd MMM yyyy HH:mm:ss G\\MT");
