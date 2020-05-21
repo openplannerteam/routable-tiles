@@ -9,7 +9,7 @@ namespace RouteableTiles.IO.JsonLD
         public static IEnumerable<OsmGeo> GetRouteableTile(this IEnumerable<OsmGeo> tileData,
             Func<OsmGeo, bool>? isRelevant = null, Func<IEnumerable<OsmGeoKey>, IEnumerable<OsmGeo>>? getOsmGeo = null)
         {
-            var result = new List<OsmGeo>();
+            var result = new SortedSet<OsmGeo>(Comparer<OsmGeo>.Create((x1, x2) => new OsmGeoKey(x1).CompareTo(new OsmGeoKey(x2))));
 
             var nodesInTile = new Dictionary<long, Node>();
             var nodesToQuery = new HashSet<OsmGeoKey>();
@@ -97,6 +97,12 @@ namespace RouteableTiles.IO.JsonLD
                     }
                 }
             }
+            
+            // add nodes.
+            foreach (var node in nodesToInclude.Values)
+            {
+                result.Add(node);
+            }
 
             // get all the nodes not in the tiles but required.
             var otherNodes = getOsmGeo?.Invoke(nodesToQuery);
@@ -106,13 +112,10 @@ namespace RouteableTiles.IO.JsonLD
                 {
                     if (otherOsmGeo is Node otherNode)
                     {
-                        nodesToInclude.Add(otherNode.Id.Value, otherNode);
+                        result.Add(otherNode);
                     }
                 }
             }
-
-            // return all the nodes.
-            result.AddRange(nodesToInclude.Values);
 
             // returns all the ways that have at least one node.
             foreach (var wayToInclude in waysToInclude.Values)
