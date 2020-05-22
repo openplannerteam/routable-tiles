@@ -27,27 +27,31 @@ namespace RouteableTiles.API.Controllers
         [HttpGet("{z}/{x}/{y}/")]
         public object GetJsonLD(uint z, uint x, uint y)
         {
-            var db = DatabaseInstance.Default;
+            var historyDb = DatabaseInstance.Default;
+            if (historyDb == null) return NotFound();
             
+            // assume latest db, unless accept-datetime header.
+            var db = historyDb.Latest;
             if (db == null) return NotFound();
+            if (z != db.Zoom) return NotFound();
             
-            var latest = db.Latest;
-            if (latest == null) return NotFound();
-            if (z != latest.Zoom) return NotFound();
-            var date = latest.EndTimestamp;
-            
+            // get the db closest to the accept-datetime header.
             if (this.Request.Headers.TryGetValue("Accept-Datetime", out var value) &&
                 DateTime.TryParseExact(value.ToString(), "ddd, dd MMM yyyy HH:mm:ss G\\MT", System.Globalization.CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal, out var utcDate))
             {
                 utcDate = utcDate.ToUniversalTime();
 
-                var dbAtDate = db.GetOn(utcDate);
-                if (dbAtDate == null) return NotFound();
-                if (z != dbAtDate.Zoom) return NotFound();
-                date = dbAtDate.EndTimestamp;
+                db = historyDb.GetOn(utcDate);
+                if (db == null) return NotFound();
+                if (z != db.Zoom) return NotFound();
             }
             
+            // get the db that has this tile.
+            var dbForTile = db.GetDbForTile((x, y));
+            if (dbForTile == null) return NotFound();
+            var date = dbForTile.EndTimestamp;
+
             var timestamp =
                 $"{date.Year:0000}{date.Month:00}{date.Day:00}-{date.Hour:00}{date.Minute:00}{date.Second:00}";
 
