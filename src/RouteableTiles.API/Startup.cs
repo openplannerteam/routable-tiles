@@ -29,6 +29,7 @@ namespace RouteableTiles.API
             {
                 options.OutputFormatters.Insert(0, new OsmXmlResponseFormatter());
                 options.OutputFormatters.Insert(0, new JsonLDTileResponseFormatter());
+                options.OutputFormatters.Insert(0, new JsonLDChangeResponseFormatter());
             });
         }
 

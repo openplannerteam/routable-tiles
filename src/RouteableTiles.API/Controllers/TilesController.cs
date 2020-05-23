@@ -3,10 +3,10 @@ using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Net.Http.Headers;
+using OsmSharp.Db.Tiled;
 using RouteableTiles.API.Responses;
 using RouteableTiles.IO.JsonLD.Semantics;
 using RouteableTiles.IO.JsonLD.Tiles;
-using Serilog;
 
 namespace RouteableTiles.API.Controllers
 {
@@ -30,30 +30,27 @@ namespace RouteableTiles.API.Controllers
             var historyDb = DatabaseInstance.Default;
             if (historyDb == null) return NotFound();
             
-            // assume latest db, unless accept-datetime header.
-            var db = historyDb.Latest;
-            if (db == null) return NotFound();
-            if (z != db.Zoom) return NotFound();
-            
             // get the db closest to the accept-datetime header.
+            DateTime? date = null;
             if (this.Request.Headers.TryGetValue("Accept-Datetime", out var value) &&
                 DateTime.TryParseExact(value.ToString(), "ddd, dd MMM yyyy HH:mm:ss G\\MT", System.Globalization.CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal, out var utcDate))
             {
-                utcDate = utcDate.ToUniversalTime();
-
-                db = historyDb.GetOn(utcDate);
-                if (db == null) return NotFound();
-                if (z != db.Zoom) return NotFound();
+                date = utcDate.ToUniversalTime();
             }
             
-            // get the db that has this tile.
-            var dbForTile = db.GetDbForTile((x, y));
+            // get the db for the given date.
+            var dbOn = historyDb.Latest;
+            if (date != null) dbOn = historyDb.GetSmallestOn(date.Value);
+            if (dbOn == null) return NotFound();
+            
+            // gets the db for the tile.
+            var dbForTile = historyDb.GetDbForTile(dbOn, (x, y));
             if (dbForTile == null) return NotFound();
-            var date = dbForTile.EndTimestamp;
+            date = dbForTile.EndTimestamp;
 
             var timestamp =
-                $"{date.Year:0000}{date.Month:00}{date.Day:00}-{date.Hour:00}{date.Minute:00}{date.Second:00}";
+                $"{date.Value.Year:0000}{date.Value.Month:00}{date.Value.Day:00}-{date.Value.Hour:00}{date.Value.Minute:00}{date.Value.Second:00}";
 
             var routeValues = new RouteValueDictionary {["timestamp"] = timestamp, ["x"] = x, ["y"] = y, ["z"] = z};
             return new RedirectToActionResult(nameof(GetJsonLDVersion), "Tiles", routeValues);
@@ -62,28 +59,43 @@ namespace RouteableTiles.API.Controllers
         [HttpGet("{timestamp}/{z}/{x}/{y}/")]
         public object GetJsonLDVersion(string timestamp, uint z, uint x, uint y)
         {
+            // parse the timestamp and make sure it's UTC.
             if (!DateTime.TryParseExact(timestamp, "yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal, out var utcDate))
             {
                 return NotFound();
             }
-
             utcDate = utcDate.ToUniversalTime();
             
-            var db = DatabaseInstance.Default;
-            if (db == null) return NotFound();
+            // get the db.
+            var historyDb = DatabaseInstance.Default;
+            if (historyDb == null) return NotFound();
 
-            var instance = db.GetOn(utcDate);
-            if (instance == null) return NotFound();
-            if (z != instance.Zoom) return NotFound();
+            // gets the db on the date.
+            var dbOn = historyDb.GetOn(utcDate);
+            if (dbOn == null) return NotFound();
+            if (z != dbOn.Zoom) return NotFound();
             
-            var data = instance.GetRouteableTile((x, y), (ts) => ts.IsRelevant(
+            // check if db has the tile, otherwise redirect.
+            var dbForTile = historyDb.GetDbForTile(dbOn, (x, y));
+            if (dbForTile != null && dbForTile.EndTimestamp != dbOn.EndTimestamp)
+            {
+                var date = dbForTile.EndTimestamp;
+                
+                timestamp =
+                    $"{date.Year:0000}{date.Month:00}{date.Day:00}-{date.Hour:00}{date.Minute:00}{date.Second:00}";
+                var routeValues = new RouteValueDictionary {["timestamp"] = timestamp, ["x"] = x, ["y"] = y, ["z"] = z};
+                return new RedirectToActionResult(nameof(GetJsonLDVersion), "Tiles", routeValues);
+            }
+            
+            // the db has the tile, return it.
+            var data = dbOn.GetRouteableTile((x, y), (ts) => ts.IsRelevant(
                 JsonLDTileResponseFormatter.MappingKeys ?? TagMapper.DefaultMappingKeys, 
                 JsonLDTileResponseFormatter.Mapping ?? TagMapper.DefaultMappingConfigs));
 
             var baseUrl = this.Request.HttpContext.Request.BasePath();
-            if (!baseUrl.EndsWith("/")) baseUrl = baseUrl + "/";
-            baseUrl = $"{baseUrl}{z}/{x}/{y}/";
+            if (!baseUrl.EndsWith("/")) baseUrl += "/";
+            baseUrl = $"{baseUrl}{timestamp}/{z}/{x}/{y}/";
             
             Response.Headers[HeaderNames.CacheControl] = "public,max-age=" + (int)TimeSpan.FromDays(1).TotalSeconds;
             Response.Headers["Memento-DateTime"] = utcDate.ToString("ddd, dd MMM yyyy HH:mm:ss G\\MT");
