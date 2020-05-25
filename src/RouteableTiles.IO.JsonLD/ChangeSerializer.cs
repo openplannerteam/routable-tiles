@@ -75,8 +75,8 @@ namespace RouteableTiles.IO.JsonLD
             
             await writer.WritePropertyAsync("@id", url, true);
             await writer.WritePropertyAsync("@type", "hydra:PartialCollectionView", true);
-            if (previous != null) await writer.WritePropertyAsync("hydra:previous", $"{baseUrl}/changes/{previous}", true);
-            if (next != null) await writer.WritePropertyAsync("hydra:next", $"{baseUrl}/changes/{next}", true);
+            if (previous != null) await writer.WritePropertyAsync("hydra:previous", $"{baseUrl}changes/{previous}", true);
+            if (next != null) await writer.WritePropertyAsync("hydra:next", $"{baseUrl}changes/{next}", true);
         }
     }
 }

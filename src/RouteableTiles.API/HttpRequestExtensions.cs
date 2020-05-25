@@ -10,7 +10,7 @@ namespace RouteableTiles.API
             var domain = request.Host.ToString();
 
             var requestPath = request.Path;
-            return $"https://{domain}{requestPath}";
+            return $"{request.Scheme}://{domain}{requestPath}";
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace RouteableTiles.API
             {
                 path = pathBases.First();
             }
-            return $"https://{domain}{path}";
+            return $"{request.Scheme}://{domain}{path}";
         }
     }
 }
