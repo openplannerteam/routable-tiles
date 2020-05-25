@@ -72,7 +72,7 @@ namespace RouteableTiles.API.Controllers
             if (historyDb == null) return NotFound();
 
             // gets the db on the date.
-            var dbOn = historyDb.GetOn(utcDate);
+            var dbOn = historyDb.GetSmallestOn(utcDate);
             if (dbOn == null) return NotFound();
             if (z != dbOn.Zoom) return NotFound();
             
