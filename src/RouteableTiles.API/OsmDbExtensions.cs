@@ -19,7 +19,7 @@ namespace RouteableTiles.API
         internal static IEnumerable<OsmGeo> GetTile(this OsmTiledDbBase db, (uint x, uint y) tile,
             byte[]? buffer = null)
         {
-            return db.Get(new[] {tile}).Select(x => x.osmGeo);
+            return db.Get(tile, true, false);
         }
     }
 }
