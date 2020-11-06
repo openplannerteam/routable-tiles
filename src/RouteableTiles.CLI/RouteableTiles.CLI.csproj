@@ -20,7 +20,6 @@
         <PackageReference Include="OsmSharp.Replication" Version="0.0.2-alpha" />
         <PackageReference Include="System.Text.Json" Version="4.7.1" />
         <PackageReference Include="OsmSharp.Db.Tiled" Version="0.0.30-alpha" />
-        <PackageReference Include="OsmSharp.IO.Binary" Version="0.2.7-alpha" />
     </ItemGroup>
 
     <ItemGroup>
