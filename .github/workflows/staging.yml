@@ -15,6 +15,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301    
+    - name: Prepare NuGet.Config
+      uses: datamonsters/replace-action@v2
+      with:
+        files: 'NuGet.Config.actions'
+        replacements: '%%username%%= nuget-client,%%token%%=${{ secrets.ANYWAYS_BUILD_SERVER }}'
+    - run: mv NuGet.Config.actions NuGet.Config 
     - name: Install dependencies
       run: dotnet restore
     - name: Build
