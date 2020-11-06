@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <packageSources>
+        <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+        <add key="anyways-build-server" value="https://build.anyways.eu/httpAuth/app/nuget/feed/_Root/default/v3/index.json" />
+    </packageSources>
+    <packageSourceCredentials>
+        <anyways-build-server>
+            <add key="Username" value="%%username%%" />
+            <add key="ClearTextPassword" value="%%token%%" />
+        </anyways-build-server>
+    </packageSourceCredentials>
+</configuration>
