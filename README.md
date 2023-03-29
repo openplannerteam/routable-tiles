@@ -1,6 +1,6 @@
 # routable-tiles
 
-[![Build status](https://build.anyways.eu/app/rest/builds/buildType:(id:anyways_Openplannerteam_RoutableTiles)/statusIcon)](https://build.anyways.eu/viewType.html?buildTypeId=anyways_Openplannerteam_RoutableTiles)
+[![Production](https://github.com/openplannerteam/routable-tiles/actions/workflows/production.yml/badge.svg)](https://github.com/openplannerteam/routable-tiles/actions/workflows/production.yml) 
   
 A CLI tool to generate routable tiles. The main goal of this tool is to generate ready to use 'routable tiles' that can be consumed by existing routeplanning apps.
 
