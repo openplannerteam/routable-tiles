@@ -80,7 +80,7 @@ public class Program
                         // add controllers and formatters.
                         services.AddMvc(opt =>
                         {
-                            opt.OutputFormatters.Insert(0,new JsonLdTileResponseFormatter());
+                            opt.OutputFormatters.Insert(0, new JsonLdTileResponseFormatter());
                         }).AddJsonOptions(opt =>
                         {
                             opt.JsonSerializerOptions.Converters.Add(new OsmJsonConverter());

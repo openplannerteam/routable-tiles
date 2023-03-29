@@ -31,7 +31,7 @@ public static class TagMapperConfigParser
     public static Dictionary<string, TagMapperConfig> ParseFromJson(string json)
     {
         var mappings = new Dictionary<string, TagMapperConfig>();
-            
+
         var parsed = JArray.Parse(json);
 
         foreach (var item in parsed)
@@ -61,10 +61,10 @@ public static class TagMapperConfigParser
                         }
                     }
                 }
-                    
+
                 mappings[osmKey] = new TagMapperConfig()
                 {
-                    mapping =  mapping,
+                    mapping = mapping,
                     osm_key = osmKey,
                     predicate = predicate
                 };
@@ -76,7 +76,7 @@ public static class TagMapperConfigParser
                 throw;
             }
         }
-            
+
         return mappings;
     }
 }

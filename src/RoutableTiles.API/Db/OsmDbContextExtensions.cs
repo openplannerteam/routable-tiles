@@ -483,7 +483,7 @@ public static class OsmDbContextExtensions
 
         return GetLatestVersions(nodes);
     }
-    
+
     /// <summary>
     /// Gets the commit, before or at the given commit, with the latest data for the given tile.
     /// </summary>
@@ -518,7 +518,7 @@ public static class OsmDbContextExtensions
         return await db.SnapshotCommits.FindAsync(commits[0]) ??
                throw new InvalidDataException($"snapshot commit {commits[0]} not found");
     }
-    
+
     private static readonly ConcurrentDictionary<long, ImmutableHashSet<long>> SnapshotCommitTiles = new();
 
     /// <summary>

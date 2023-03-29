@@ -12,14 +12,14 @@ internal class JsonLdTileResponseFormatter : TextOutputFormatter
 {
     public JsonLdTileResponseFormatter()
     {
-        SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/html"));
-        SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
-        SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/ld+json"));
-            
-        SupportedEncodings.Add(Encoding.UTF8);
-        SupportedEncodings.Add(Encoding.Unicode);
+        this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/html"));
+        this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
+        this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/ld+json"));
+
+        this.SupportedEncodings.Add(Encoding.UTF8);
+        this.SupportedEncodings.Add(Encoding.Unicode);
     }
-        
+
     protected override bool CanWriteType(Type? type)
     {
         return typeof(TileResponse).IsAssignableFrom(type);

@@ -76,7 +76,7 @@ public class TilesController : ControllerBase
     {
         // read-only, don't track changes.
         _db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-        
+
         // parse the timestamp and make sure it's UTC.
         if (!DateTime.TryParseExact(timestamp, "yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal, out var utcDate))
@@ -85,7 +85,7 @@ public class TilesController : ControllerBase
         }
 
         utcDate = utcDate.ToUniversalTime();
-        
+
         // try to get commit from cache.
         var commit = await _db.SnapshotCommitsByTimestampCache.GetFor(utcDate);
         if (commit == null)
@@ -95,14 +95,14 @@ public class TilesController : ControllerBase
                 .Where(c => c.Timestamp < utcDate.FloorMinute().AddMinutes(1))
                 .FirstOrDefaultAsync();
             if (commit == null) return this.NotFound("No data before the given timestamp");
-            
+
             _db.SnapshotCommitsByTimestampCache.Set(commit);
         }
 
         // get the latest commit the tile has changed in.
         var tile = new Tile(x, y, z);
         var latestCommit = await _db.GetLatestSnapshotCommitForTile(commit, (long)tile.Id);
-        
+
         // if latest is not this there is an
         if (latestCommit.Id != commit.Id)
         {

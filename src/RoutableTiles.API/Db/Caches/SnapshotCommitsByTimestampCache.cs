@@ -10,7 +10,7 @@ public class SnapshotCommitsByTimestampCache
     public async Task<SnapshotCommit?> GetFor(DateTime dateTime)
     {
         if (!_commits.TryGetValue(dateTime.FloorMinute(), out var commit)) return null;
-        
+
         return commit;
     }
 

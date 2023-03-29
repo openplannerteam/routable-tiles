@@ -13,9 +13,9 @@ internal static class IApplicationBuilderExtensions
         };
         options.KnownNetworks.Clear();
         options.KnownProxies.Clear();
-            
+
         app.UseForwardedHeaders(options);
-        app.Use((context, next) => 
+        app.Use((context, next) =>
         {
             if (context.Request.Headers.TryGetValue("X-Forwarded-PathBase", out var pathBases))
             {

@@ -11,11 +11,11 @@ public class OsmDbContext : DbContext
         SnapshotCommitIdsCache snapshotCommitIdsCache, SnapshotCommitsByTimestampCache snapshotCommitsByTimestampCache) : base(options)
     {
         this.SnapshotCommitIdsCache = snapshotCommitIdsCache;
-        SnapshotCommitsByTimestampCache = snapshotCommitsByTimestampCache;
+        this.SnapshotCommitsByTimestampCache = snapshotCommitsByTimestampCache;
     }
 
     public SnapshotCommitIdsCache SnapshotCommitIdsCache { get; }
-    
+
     public SnapshotCommitsByTimestampCache SnapshotCommitsByTimestampCache { get; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

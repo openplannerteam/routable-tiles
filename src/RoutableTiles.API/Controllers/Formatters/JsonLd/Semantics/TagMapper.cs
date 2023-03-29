@@ -20,7 +20,7 @@ public static class TagMapper
     /// Gets the default embedded mapping configs.
     /// </summary>
     public static Dictionary<string, TagMapperConfig> DefaultMappingConfigs => LazyMappingConfigs.Value;
-        
+
     private static readonly Lazy<Dictionary<string, TagMapperKey>> LazyMappingKeys = new Lazy<Dictionary<string, TagMapperKey>>(
         () =>
         {
@@ -34,7 +34,7 @@ public static class TagMapper
     /// Gets the default embedded mapping keys.
     /// </summary>
     public static Dictionary<string, TagMapperKey> DefaultMappingKeys => LazyMappingKeys.Value;
-        
+
     /// <summary>
     /// Returns true if there is a mapping for any of the tags in the given osm object.
     /// </summary>
@@ -45,11 +45,11 @@ public static class TagMapper
     public static bool IsRelevant(this OsmGeo osmGeo, Dictionary<string, TagMapperKey> keys, Dictionary<string, TagMapperConfig> mappings)
     {
         if (osmGeo?.Tags == null) return false;
-            
+
         foreach (var tag in osmGeo.Tags)
         {
             if (!keys.TryGetValue(tag.Key, out var key)) continue;
-                
+
             if (!string.IsNullOrWhiteSpace(key.Value) &&
                 key.Value != tag.Value) continue;
 
@@ -71,7 +71,7 @@ public static class TagMapper
 
         return false;
     }
-        
+
     /// <summary>
     /// Maps the given tag using the given semantic mappings.
     /// </summary>

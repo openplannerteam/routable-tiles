@@ -137,140 +137,140 @@ internal static class JsonLdTileSerializer
         writer.WriteEndObject();
     }
 
-        internal static void WriteNode(this Utf8JsonWriter writer, Node node, Dictionary<string, TagMapperConfig> mapping)
+    internal static void WriteNode(this Utf8JsonWriter writer, Node node, Dictionary<string, TagMapperConfig> mapping)
+    {
+        if (writer == null)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            writer.WriteStartObject();
-
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Node", true, true);
-            writer.WriteProperty("geo:long", node.Longitude.ToInvariantString());
-            writer.WriteProperty("geo:lat", node.Latitude.ToInvariantString());
-            
-            if (node.Tags != null)
-            {
-                writer.WriteTags(node.Tags, mapping);
-            }
-
-            writer.WriteEndObject();
+            throw new ArgumentNullException(nameof(writer));
         }
 
-        internal static void WriteWay(this Utf8JsonWriter writer, Way way, Dictionary<string, TagMapperConfig> mapping)
+        if (node == null)
         {
-            if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
-            if (way == null) { throw new ArgumentNullException(nameof(way)); }
-            
-            writer.WriteStartObject();
-            
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{way.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Way", true, true);
+            throw new ArgumentNullException(nameof(node));
+        }
 
-            if (way.Tags != null)
+        writer.WriteStartObject();
+
+        writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{node.Id}", true, false);
+        writer.WriteProperty("@type", "osm:Node", true, true);
+        writer.WriteProperty("geo:long", node.Longitude.ToInvariantString());
+        writer.WriteProperty("geo:lat", node.Latitude.ToInvariantString());
+
+        if (node.Tags != null)
+        {
+            writer.WriteTags(node.Tags, mapping);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    internal static void WriteWay(this Utf8JsonWriter writer, Way way, Dictionary<string, TagMapperConfig> mapping)
+    {
+        if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
+        if (way == null) { throw new ArgumentNullException(nameof(way)); }
+
+        writer.WriteStartObject();
+
+        writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{way.Id}", true, false);
+        writer.WriteProperty("@type", "osm:Way", true, true);
+
+        if (way.Tags != null)
+        {
+            writer.WriteTags(way.Tags, mapping);
+        }
+
+        writer.WritePropertyName("osm:hasNodes");
+
+        writer.WriteStartArray();
+        if (way.Nodes != null)
+        {
+            foreach (var node in way.Nodes)
             {
-                writer.WriteTags(way.Tags, mapping);
+                writer.WriteStringValue($"http://www.openstreetmap.org/node/{node}");
             }
-            
-            writer.WritePropertyName("osm:hasNodes");
-            
-            writer.WriteStartArray();
-            if (way.Nodes != null)
+        }
+        writer.WriteEndArray();
+
+        writer.WriteEndObject();
+    }
+
+    internal static void WriteRelation(this Utf8JsonWriter writer, Relation relation, Dictionary<string, TagMapperConfig> mapping)
+    {
+        if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
+        if (relation == null) { throw new ArgumentNullException(nameof(relation)); }
+
+        writer.WriteStartObject();
+
+        writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{relation.Id}", true, false);
+        writer.WriteProperty("@type", "osm:Relation", true, true);
+
+        if (relation.Tags != null)
+        {
+            writer.WriteTags(relation.Tags, mapping);
+        }
+
+        writer.WritePropertyName("osm:hasMembers");
+
+        writer.WriteStartArray();
+        if (relation.Members != null)
+        {
+            foreach (var member in relation.Members)
             {
-                foreach (var node in way.Nodes)
+                writer.WriteStartObject();
+
+                switch (member.Type)
                 {
-                    writer.WriteStringValue($"http://www.openstreetmap.org/node/{node}");
+                    case OsmGeoType.Node:
+                        writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{member.Id}", true, false);
+                        break;
+                    case OsmGeoType.Way:
+                        writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{member.Id}", true, false);
+                        break;
+                    case OsmGeoType.Relation:
+                        writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{member.Id}", true, false);
+                        break;
                 }
-            }
-            writer.WriteEndArray();
-            
-            writer.WriteEndObject();
-        }
 
-        internal static void WriteRelation(this Utf8JsonWriter writer, Relation relation, Dictionary<string, TagMapperConfig> mapping)
-        {
-            if (writer == null) { throw new ArgumentNullException(nameof(writer)); }
-            if (relation == null) { throw new ArgumentNullException(nameof(relation)); }
-            
-            writer.WriteStartObject();
-            
-            writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{relation.Id}", true, false);
-            writer.WriteProperty("@type", "osm:Relation", true, true);
-
-            if (relation.Tags != null)
-            {
-                writer.WriteTags(relation.Tags, mapping);
-            }
-            
-            writer.WritePropertyName("osm:hasMembers");
-            
-            writer.WriteStartArray();
-            if (relation.Members != null)
-            {
-                foreach (var member in relation.Members)
+                if (!string.IsNullOrWhiteSpace(member.Role))
                 {
-                    writer.WriteStartObject();
-
-                    switch (member.Type)
-                    {
-                        case OsmGeoType.Node:
-                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/node/{member.Id}", true, false);
-                            break;
-                        case OsmGeoType.Way:
-                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/way/{member.Id}", true, false);
-                            break;
-                        case OsmGeoType.Relation:
-                            writer.WriteProperty("@id", $"http://www.openstreetmap.org/relation/{member.Id}", true, false);
-                            break;
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(member.Role))
-                    {
-                        writer.WriteProperty("role", member.Role, true, false);
-                    }
-                    
-                    writer.WriteEndObject();
+                    writer.WriteProperty("role", member.Role, true, false);
                 }
+
+                writer.WriteEndObject();
             }
-            writer.WriteEndArray();
-            
-            writer.WriteEndObject();
+        }
+        writer.WriteEndArray();
+
+        writer.WriteEndObject();
+    }
+
+    internal static void WriteTags(this Utf8JsonWriter writer, TagsCollectionBase tags, Dictionary<string, TagMapperConfig> mapping)
+    {
+        var undefinedTags = new List<Tag>();
+        foreach (var tag in tags)
+        {
+            if (tag.Map(mapping, writer)) continue;
+
+            undefinedTags.Add(tag);
         }
 
-        internal static void WriteTags(this Utf8JsonWriter writer, TagsCollectionBase tags, Dictionary<string, TagMapperConfig> mapping)
+        writer.WritePropertyName("osm:hasTag");
+        writer.WriteStartArray();
+        foreach (var tag in undefinedTags)
         {
-            var undefinedTags = new List<Tag>();
-            foreach (var tag in tags)
-            {
-                if (tag.Map(mapping, writer)) continue;
-                
-                undefinedTags.Add(tag);
-            }
-            
-            writer.WritePropertyName("osm:hasTag");
-            writer.WriteStartArray();
-            foreach (var tag in undefinedTags)
-            {
-                writer.WriteStringValue($"{tag.Key}={tag.Value}");
-            }
-            writer.WriteEndArray();
+            writer.WriteStringValue($"{tag.Key}={tag.Value}");
         }
-    
+        writer.WriteEndArray();
+    }
+
     /// <summary>
     /// Writes a property and it's value.
     /// </summary>
     internal static void WriteProperty(this Utf8JsonWriter writer, string name, string value, bool useQuotes = false, bool escape = false)
-    {      
+    {
         if (escape) name = JsonTools.Escape(name);
         if (escape) value = JsonTools.Escape(value);
-        
+
         writer.WritePropertyName(name);
         if (useQuotes)
         {
