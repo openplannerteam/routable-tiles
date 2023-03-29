@@ -2,7 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
-using OsmSharp;
+using RoutableTiles.API.Controllers.Formatters;
 using RoutableTiles.API.Db;
 using RoutableTiles.API.Db.Caches;
 using RoutableTiles.API.Db.Tiles;
@@ -72,7 +72,7 @@ public class TilesController : ControllerBase
     }
 
     [HttpGet("{timestamp}/{z:int}/{x:int}/{y:int}/")]
-    public async Task<ActionResult<IReadOnlyList<OsmGeo>>> GetJsonLdAt(string timestamp, int z, int x, int y)
+    public async Task<ActionResult<TileResponse>> GetJsonLdAt(string timestamp, int z, int x, int y)
     {
         // read-only, don't track changes.
         _db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
@@ -117,6 +117,10 @@ public class TilesController : ControllerBase
         }
 
         // get the tile using the cache if possible.
-        return new ActionResult<IReadOnlyList<OsmGeo>>(await _db.GetTileCached(commit, _tilesCache, (long)tile.Id));
+        return new ActionResult<TileResponse>(new TileResponse()
+        {
+            Data = await _db.GetTileCached(commit, _tilesCache, (long)tile.Id),
+            Tile = tile
+        });
     }
 }

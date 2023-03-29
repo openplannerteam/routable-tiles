@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using OsmSharp.IO.Json.Converters;
+using RoutableTiles.API.Controllers.Formatters.JsonLd;
+using RoutableTiles.API.Controllers.Formatters.JsonLd.Semantics;
 using RoutableTiles.API.Db;
 using RoutableTiles.API.Db.Caches;
 using RoutableTiles.API.Db.Caches.Disk;
@@ -76,7 +78,10 @@ public class Program
                         });
 
                         // add controllers and formatters.
-                        services.AddMvc().AddJsonOptions(opt =>
+                        services.AddMvc(opt =>
+                        {
+                            opt.OutputFormatters.Insert(0,new JsonLdTileResponseFormatter());
+                        }).AddJsonOptions(opt =>
                         {
                             opt.JsonSerializerOptions.Converters.Add(new OsmJsonConverter());
                         });

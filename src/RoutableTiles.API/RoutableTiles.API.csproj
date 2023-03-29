@@ -24,4 +24,12 @@
     <PackageReference Include="SerilogMetrics" Version="2.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\ontology\mapping_config.json">
+      <Link>Controllers/Formatters/JsonLd/Semantics/Config/mapping_config.json</Link>
+    </EmbeddedResource>
+    <Content Remove="Controllers\Formatters\JsonLd\Semantics\Config\mapping_keys.json" />
+    <EmbeddedResource Include="Controllers\Formatters\JsonLd\Semantics\Config\mapping_keys.json" />
+  </ItemGroup>
+
 </Project>
