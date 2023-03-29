@@ -13,33 +13,31 @@ jobs:
     - uses: actions/checkout@v2
     - name: Checkout submodules
       uses: textbook/git-checkout-submodule-action@master
-    - name: Setup .NET Core
+    - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.301    
-    - name: Prepare NuGet.Config
-      uses: datamonsters/replace-action@v2
-      with:
-        files: 'NuGet.Config.actions'
-        replacements: '%%username%%= nuget-client,%%token%%=${{ secrets.ANYWAYS_BUILD_SERVER }}'
-    - run: mv NuGet.Config.actions NuGet.Config 
+        dotnet-version: 6.0.x
     - name: Install dependencies
       run: dotnet restore
+
+    - name: Run dotnet format
+      run: dotnet format --verify-no-changes --verbosity diagnostic --no-restore   
+
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal
     - name: Publish project
       run: dotnet publish -c release
-      working-directory: ./src/RouteableTiles.API/
+      working-directory: ./src/RoutableTiles.API/
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag openplannerteam/routeable-tiles-api:staging --tag openplannerteam/routeable-tiles-api:staging-0.$GITHUB_RUN_NUMBER
-      working-directory: ./src/RouteableTiles.API/
+      working-directory: ./src/RoutableTiles.API/
     - name: Login to Docker Hub
       run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u openplannerteam --password-stdin
     - name: Publish the image.
       run: docker push openplannerteam/routeable-tiles-api:staging
-      working-directory: ./src/RouteableTiles.API/
+      working-directory: ./src/RoutableTiles.API/
     - name: Publish the image versioned.
       run: docker push openplannerteam/routeable-tiles-api:staging-0.$GITHUB_RUN_NUMBER
-      working-directory: ./src/RouteableTiles.API/
+      working-directory: ./src/RoutableTiles.API/
