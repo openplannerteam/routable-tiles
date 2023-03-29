@@ -1,0 +1,47 @@
+name: Staging
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Add GitHub Nuget Source
+      run: dotnet nuget add source https://nuget.pkg.github.com/osmsharp/index.json -n github -u xivk -p ${{secrets.PACKAGES_SECRET }} --store-password-in-clear-text
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Run dotnet format
+      run: dotnet format --verify-no-changes --verbosity diagnostic --no-restore   
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Publish project
+      run: dotnet publish -c release
+      working-directory: ./src/RoutableTiles.API/
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag openplannerteam/routeable-tiles-api:prod --tag openplannerteam/routeable-tiles-api:prod-0.$GITHUB_RUN_NUMBER
+      working-directory: ./src/RoutableTiles.API/
+    - name: Login to Docker Hub
+      run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u openplannerteam --password-stdin
+    - name: Publish the image.
+      run: docker push openplannerteam/routeable-tiles-api:prod
+      working-directory: ./src/RoutableTiles.API/
+    - name: Publish the image versioned.
+      run: docker push openplannerteam/routeable-tiles-api:prod-0.$GITHUB_RUN_NUMBER
+      working-directory: ./src/RoutableTiles.API/
