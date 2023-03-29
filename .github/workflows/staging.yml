@@ -17,6 +17,10 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+
+    - name: Add GitHub Nuget Source
+      run: dotnet nuget add source https://nuget.pkg.github.com/osmsharp/index.json -n github -u xivk -p ${{secrets.PACKAGES_SECRET }} --store-password-in-clear-text
+
     - name: Install dependencies
       run: dotnet restore
 
